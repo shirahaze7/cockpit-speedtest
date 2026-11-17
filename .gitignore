@@ -1,0 +1,15 @@
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Node（単体テストは標準ランナーのみで追加依存はないが、将来の導入に備える）
+node_modules/
+
+# ビルド・作業ファイル
+dist/
+*.log
+*.tmp
