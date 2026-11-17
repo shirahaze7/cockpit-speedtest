@@ -1,0 +1,6 @@
+# テキストファイルは LF で統一する
+* text=auto eol=lf
+
+Makefile text eol=lf
+*.png binary
+*.jpg binary
