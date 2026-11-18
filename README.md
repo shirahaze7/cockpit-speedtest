@@ -15,14 +15,15 @@ Cockpit 上から Linux サーバー自体のインターネット通信速度�
 
 - Cockpit (version 276 以降)
 - Ookla Speedtest CLI（コマンド名: `speedtest`）
-  - 未導入の場合は画面上に導入手順の案内が表示されます。
-  - 公式導入手順: https://www.speedtest.net/apps/cli
+  - `.deb` パッケージからのインストール時は自動的にセットアップされます。
+  - 手動インストールの場合は公式手順を参照してください: https://www.speedtest.net/apps/cli
 
 ## インストール
 
 ### .deb パッケージから（Ubuntu 24.04）
 
 GitHub Releases から最新の `.deb` パッケージをダウンロードしてインストールします。
+インストール時に Ookla Speedtest CLI も自動で導入されます。
 
 ```sh
 sudo apt install ./cockpit-speedtest_*_all.deb
