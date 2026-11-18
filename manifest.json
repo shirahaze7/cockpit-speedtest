@@ -1,1 +1,0 @@
-{"name":"speedtest","requires":{"cockpit":"276"},"tools":{"index":{"keywords":[{"matches":["speedtest","speed","network","bandwidth","ookla"],"weight":10}],"label":"Speed Test","order":90}},"version":1}
