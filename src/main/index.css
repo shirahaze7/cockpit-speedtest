@@ -1,0 +1,207 @@
+/* index.css — PatternFly に寄せた最小限のスタイル。
+ * PatternFly 本体の CSS が読み込めない環境でも、このファイルだけで
+ * Cockpit らしい見た目を保てるようにしてある。 */
+
+.st-page {
+    font-family: "RedHatText", "Noto Sans JP", system-ui, sans-serif;
+    color: var(--pf-t--global--text--color--regular, #151515);
+    background: var(--pf-t--global--background--color--primary--default, #fff);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+.st-header h1 {
+    font-size: 1.75rem;
+    margin: 0 0 0.5rem;
+}
+
+.st-lead {
+    line-height: 1.6;
+    margin: 0 0 1.5rem;
+}
+
+.st-card {
+    border: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--pf-t--global--background--color--primary--default, #fff);
+}
+
+.st-card h2 {
+    font-size: 1.25rem;
+    margin: 0 0 0.75rem;
+}
+
+.st-hidden {
+    display: none !important;
+}
+
+.st-muted {
+    color: var(--pf-t--global--text--color--subtle, #505050);
+    font-size: 0.9rem;
+}
+
+.st-btn {
+    font: inherit;
+    padding: 0.45rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--pf-t--global--color--brand--default, #0066cc);
+    background: transparent;
+    color: var(--pf-t--global--color--brand--default, #0066cc);
+    cursor: pointer;
+}
+
+.st-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.st-btn-primary {
+    background: var(--pf-t--global--color--brand--default, #0066cc);
+    color: #fff;
+}
+
+.st-btn-danger {
+    border-color: var(--pf-t--global--color--status--danger--default, #b1380b);
+    color: var(--pf-t--global--color--status--danger--default, #b1380b);
+}
+
+.st-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.st-form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.st-inline {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.st-inline select {
+    font: inherit;
+    padding: 0.45rem;
+    min-width: min(480px, 100%);
+    border: 1px solid var(--pf-t--global--border--color--default, #d2d2d2);
+    border-radius: 4px;
+    background: inherit;
+}
+
+.st-check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin-top: 1rem;
+    line-height: 1.5;
+}
+
+.st-links {
+    line-height: 1.7;
+    word-break: break-all;
+}
+
+.st-alert {
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid transparent;
+}
+
+.st-alert p {
+    margin: 0.35rem 0 0;
+    line-height: 1.6;
+}
+
+.st-alert-danger {
+    background: #fdf3f0;
+    border-color: #b1380b;
+}
+
+.st-alert-warning {
+    background: #fdf7e7;
+    border-color: #b18c00;
+}
+
+.st-alert-success {
+    background: #f0f7f0;
+    border-color: #1e4f18;
+}
+
+.st-progress {
+    height: 12px;
+    background: var(--pf-t--global--background--color--secondary--default, #f0f0f0);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.st-progress-bar {
+    height: 100%;
+    background: var(--pf-t--global--color--brand--default, #0066cc);
+    transition: width 0.3s ease;
+}
+
+.st-progress-phase {
+    font-weight: 600;
+    margin: 1rem 0 0;
+}
+
+.st-results {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.st-result {
+    display: flex;
+    flex-direction: column;
+}
+
+.st-result-label {
+    color: var(--pf-t--global--text--color--subtle, #505050);
+    font-size: 0.9rem;
+}
+
+.st-result-value {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.st-result-unit {
+    color: var(--pf-t--global--text--color--subtle, #505050);
+}
+
+.st-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1rem;
+    margin: 0;
+}
+
+.st-meta dt {
+    font-weight: 600;
+}
+
+.st-meta dd {
+    margin: 0;
+    word-break: break-all;
+}
+
+#log-output {
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 320px;
+    overflow: auto;
+    font-size: 0.85rem;
+}
