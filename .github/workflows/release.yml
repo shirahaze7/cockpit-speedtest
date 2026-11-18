@@ -33,7 +33,17 @@ jobs:
       - name: ビルド依存をインストール
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends build-essential debhelper dpkg-dev
+          sudo apt-get install -y --no-install-recommends build-essential debhelper dpkg-dev devscripts
+
+      - name: バージョンを Git タグに合わせる
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VER="${GITHUB_REF_NAME#v}"
+          echo "タグからバージョンを設定: $TAG_VER"
+          # package.json のバージョンを更新
+          npm version "$TAG_VER" --no-git-tag-version --allow-same-version || true
+          # debian/changelog に新しいバージョンエントリを追加
+          dch -v "${TAG_VER}-1" -D noble --force-distribution "Release ${TAG_VER}"
 
       - name: debian/rules に実行権限を付ける
         run: chmod +x debian/rules
