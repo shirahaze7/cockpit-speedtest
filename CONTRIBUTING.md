@@ -30,9 +30,10 @@ make check           # 構文チェックと単体テスト
 
 ## 変更時のチェック
 
-- `make check` が通ることを確認してください（JS の構文チェック、`speedtest.js` の単体テスト、`manifest.json` の検証）。
+- `make check` が通ることを確認してください（JS の構文チェック、`src/main/speedtest.js` の単体テスト、`src/main/manifest.json` の検証）。
+- アプリ本体のソースは `src/main/`、テストは `src/test/` に置き、トップレベルへは置かないでください。パッケージ定義は `debian/` に置きます。
 - GitHub Actions の「チェック」ワークフローが、push／プルリクエストのたびに Ubuntu 24.04 で `make check` と `.deb` のビルド確認（中身の検証付き）を自動実行します。赤くなったらまずそちらのログを確認してください。
-- ロジックを変更した場合は `test/speedtest.test.js` にテストを追加・更新してください。
+- ロジックを変更した場合は `src/test/speedtest.test.js` にテストを追加・更新してください。
 - Cockpit の画面に影響する変更は、実機または開発環境の Cockpit で表示と測定の動作を確認してください。
 
 ## 方針
