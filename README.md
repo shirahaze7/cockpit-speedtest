@@ -76,19 +76,24 @@ Cockpitの画面から、Cockpitを動かしているLinuxサーバー自身の�
 
 - **実装言語**: Vanilla JavaScript（ビルド工程なし）。Cockpit が提供する `cockpit.js` の `cockpit.spawn()` でサーバー上の Ookla Speedtest CLI を実行します。React や webpack を使わないため、インストールはファイルのコピーだけで済みます。
 - **GUI**: Cockpit の標準デザイン（PatternFly）に寄せた単一画面の日本語 UI です。PatternFly 本体の CSS が読み込めない環境でも、`index.css` のみで表示が崩れないようにしています。
-- 測定・パースなどの純粋なロジックは `speedtest.js` に分離し、Node.js の標準テストランナーで単体テストしています（`make check`）。
+- 測定・パースなどの純粋なロジックは `src/main/speedtest.js` に分離し、Node.js の標準テストランナーで単体テストしています（`make check`）。
 
 ### ファイル構成
 
+ソースは `src/` 配下にまとめ、トップレベルには置きません。本体は `src/main/`、テストは `src/test/` に分けます。インストール時に `src/main/` の中身が `/usr/share/cockpit/speedtest/` へフラットに配置されます（Cockpit のパッケージ配置形式）。
+
 | ファイル | 役割 |
 | --- | --- |
-| `manifest.json` | Cockpit へ拡張を登録するマニフェスト（メニュー表示名は「Speed Test」） |
-| `index.html` | 画面の構造 |
-| `index.js` | 画面制御と CLI の実行（`cockpit.spawn()`、引数配列形式） |
-| `speedtest.js` | サーバー一覧・JSONL 出力のパース、速度換算、エラー分類 |
-| `index.css` | PatternFly 風のスタイル |
-| `test/speedtest.test.js` | `speedtest.js` の単体テスト |
-| `Makefile` | インストール／開発用導入／チェック |
+| `src/main/manifest.json` | Cockpit へ拡張を登録するマニフェスト（メニュー表示名は「Speed Test」） |
+| `src/main/index.html` | 画面の構造 |
+| `src/main/index.js` | 画面制御と CLI の実行（`cockpit.spawn()`、引数配列形式） |
+| `src/main/speedtest.js` | サーバー一覧・JSONL 出力のパース、速度換算、エラー分類 |
+| `src/main/index.css` | PatternFly 風のスタイル |
+| `src/test/speedtest.test.js` | `src/main/speedtest.js` の単体テスト |
+| `debian/` | Ubuntu 24.04 向け .deb パッケージ定義 |
+| `.github/workflows/` | テスト／.deb ビルド確認と Release の自動化 |
+| `Makefile` | インストール／開発用導入／チェック／.deb ビルド |
+| `CONTRIBUTING.md` | 開発手順と約束事 |
 
 ## インストール
 
