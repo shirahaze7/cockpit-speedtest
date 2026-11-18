@@ -10,11 +10,20 @@ on:
 
 jobs:
   check:
-    name: テスト（make check、Ubuntu 24.04）
+    name: テスト・型チェック（make check、Ubuntu 24.04）
     runs-on: ubuntu-24.04
     steps:
       - name: ソースを取得
         uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 依存関係をインストール
+        run: npm ci
 
       - name: チェックを実行
         run: make check
@@ -25,6 +34,15 @@ jobs:
     steps:
       - name: ソースを取得
         uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 依存関係をインストール
+        run: npm ci
 
       - name: ビルド依存をインストール
         run: |
@@ -43,7 +61,7 @@ jobs:
           echo "ビルド成果物: $deb"
           dpkg-deb -I "$deb"
           # Cockpit 拡張のファイルが正しい場所に入っているか確認する
-          for f in manifest.json index.html index.css index.js speedtest.js; do
+          for f in manifest.json index.html index.js index.css; do
             dpkg-deb -c "$deb" | grep -q "usr/share/cockpit/speedtest/$f" \
               || { echo "不足しているファイル: $f"; exit 1; }
           done

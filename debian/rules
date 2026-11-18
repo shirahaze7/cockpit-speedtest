@@ -3,8 +3,10 @@
 %:
 	dh $@
 
+override_dh_auto_build:
+	$(MAKE) build
+
 override_dh_auto_install:
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/cockpit-speedtest PREFIX=/usr
 
-# Makefile の check は Node.js を使うため、パッケージビルド中は実行しない
 override_dh_auto_test:

@@ -74,25 +74,29 @@ Cockpitの画面から、Cockpitを動かしているLinuxサーバー自身の�
 
 ## 実装方針
 
-- **実装言語**: Vanilla JavaScript（ビルド工程なし）。Cockpit が提供する `cockpit.js` の `cockpit.spawn()` でサーバー上の Ookla Speedtest CLI を実行します。React や webpack を使わないため、インストールはファイルのコピーだけで済みます。
-- **GUI**: Cockpit の標準デザイン（PatternFly）に寄せた単一画面の日本語 UI です。PatternFly 本体の CSS が読み込めない環境でも、`index.css` のみで表示が崩れないようにしています。
-- 測定・パースなどの純粋なロジックは `src/main/speedtest.js` に分離し、Node.js の標準テストランナーで単体テストしています（`make check`）。
+- **実装言語**: TypeScript + React 18。Cockpit 公式の推奨構成（PatternFly React + esbuild）に準拠しています。
+- **GUI**: Cockpit の標準デザインシステムである PatternFly 5（`@patternfly/react-core`）を採用し、Cockpit 本体の画面と統一感のある操作感とダークテーマ対応を提供します。
+- **ビルドツール**: esbuild を使用して高速に単一バンドル（`dist/`）を生成します。
+- 測定・パースなどの純粋なロジックは `src/lib/speedtestCore.ts` に分離し、Node.js の標準テストランナーで単体テストしています（`npm test` / `make check`）。
 
 ### ファイル構成
 
-ソースは `src/` 配下にまとめ、トップレベルには置きません。本体は `src/main/`、テストは `src/test/` に分けます。インストール時に `src/main/` の中身が `/usr/share/cockpit/speedtest/` へフラットに配置されます（Cockpit のパッケージ配置形式）。
+ソースコードは `src/` 配下に配置し、esbuild でビルドされた成果物が `dist/` へ出力されます。インストール時に `dist/` の中身が `/usr/share/cockpit/speedtest/` へフラットに配置されます。
 
-| ファイル | 役割 |
+| ファイル / ディレクトリ | 役割 |
 | --- | --- |
-| `src/main/manifest.json` | Cockpit へ拡張を登録するマニフェスト（メニュー表示名は「Speed Test」） |
-| `src/main/index.html` | 画面の構造 |
-| `src/main/index.js` | 画面制御と CLI の実行（`cockpit.spawn()`、引数配列形式） |
-| `src/main/speedtest.js` | サーバー一覧・JSONL 出力のパース、速度換算、エラー分類 |
-| `src/main/index.css` | PatternFly 風のスタイル |
-| `src/test/speedtest.test.js` | `src/main/speedtest.js` の単体テスト |
+| `src/manifest.json` | Cockpit へ拡張を登録するマニフェスト（メニュー表示名は「Speed Test」） |
+| `src/index.html` | React マウント用のベース HTML |
+| `src/index.tsx` | アプリケーションのエントリーポイント |
+| `src/App.tsx` | 全体の状態管理と画面レイアウト |
+| `src/components/` | PatternFly React を用いた各 UI コンポーネント |
+| `src/lib/speedtestCore.ts` | サーバー一覧・JSONL 出力のパース、速度換算、エラー分類 |
+| `src/types/` | Ookla CLI イベントや Cockpit API の型定義 |
+| `src/test/speedtestCore.test.ts` | `speedtestCore.ts` の単体テスト |
+| `build.js` | esbuild を用いたバンドルおよびアセット配置スクリプト |
 | `debian/` | Ubuntu 24.04 向け .deb パッケージ定義 |
 | `.github/workflows/` | テスト／.deb ビルド確認と Release の自動化 |
-| `Makefile` | インストール／開発用導入／チェック／.deb ビルド |
+| `Makefile` | ビルド／インストール／開発用導入／チェック／.deb ビルド |
 | `CONTRIBUTING.md` | 開発手順と約束事 |
 
 ## インストール
@@ -144,7 +148,9 @@ make devel-install
 ## 開発
 
 ```sh
-make check   # JS の構文チェック、単体テスト、マニフェストの JSON 検証
+npm install  # 依存関係のインストール
+make build   # TypeScript / React のバンドル (dist/ へ出力)
+make check   # 型チェック (tsc) と単体テスト
 make deb     # Ubuntu 24.04 向け .deb のビルド（debhelper が必要。成果物は1つ上のディレクトリに出力）
 ```
 

@@ -1,0 +1,40 @@
+{
+  "name": "cockpit-speedtest",
+  "version": "0.1.0",
+  "description": "Cockpit extension for Internet speed testing using Ookla Speedtest CLI",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test dist/test/*.js",
+    "check": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "@patternfly/react-core": "^5.4.0",
+    "@patternfly/react-icons": "^5.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shirahaze7/cockpit-speedtest.git"
+  },
+  "keywords": [
+    "cockpit",
+    "speedtest",
+    "bandwidth",
+    "react",
+    "typescript",
+    "patternfly"
+  ],
+  "author": "shirahaze7",
+  "license": "LGPL-2.1-or-later",
+  "private": true
+}

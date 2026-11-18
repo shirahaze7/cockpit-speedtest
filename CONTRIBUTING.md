@@ -6,15 +6,17 @@ cockpit-speedtest の開発に必要な手順と約束事をまとめます。
 
 - Cockpit が動作する Linux サーバー（開発用に `make devel-install` で自分のユーザーへ導入できます）
 - Ookla Speedtest CLI（コマンド名 `speedtest`）
-- 単体テストの実行に Node.js（追加の npm 依存はありません）
+- Node.js 20+ と npm
 
 ## セットアップ
 
 ```sh
 git clone https://github.com/shirahaze7/cockpit-speedtest.git
 cd cockpit-speedtest
+npm install          # 依存パッケージのインストール
+make build           # dist/ へバンドル
 make devel-install   # ~/.local/share/cockpit/speedtest へシンボリックリンクを作成
-make check           # 構文チェックと単体テスト
+make check           # 型チェックと単体テスト
 ```
 
 ## ブランチ運用
@@ -30,15 +32,15 @@ make check           # 構文チェックと単体テスト
 
 ## 変更時のチェック
 
-- `make check` が通ることを確認してください（JS の構文チェック、`src/main/speedtest.js` の単体テスト、`src/main/manifest.json` の検証）。
-- アプリ本体のソースは `src/main/`、テストは `src/test/` に置き、トップレベルへは置かないでください。パッケージ定義は `debian/` に置きます。
+- `make check` が通ることを確認してください（TypeScript の型チェック `tsc --noEmit`、`speedtestCore` の単体テスト）。
+- アプリ本体のソースは `src/`、テストは `src/test/` に配置し、ビルド生成物 `dist/` は Git にコミットしないでください。パッケージ定義は `debian/` に置きます。
 - GitHub Actions の「チェック」ワークフローが、push／プルリクエストのたびに Ubuntu 24.04 で `make check` と `.deb` のビルド確認（中身の検証付き）を自動実行します。赤くなったらまずそちらのログを確認してください。
-- ロジックを変更した場合は `src/test/speedtest.test.js` にテストを追加・更新してください。
+- ロジックを変更した場合は `src/test/speedtestCore.test.ts` にテストを追加・更新してください。
 - Cockpit の画面に影響する変更は、実機または開発環境の Cockpit で表示と測定の動作を確認してください。
 
 ## 方針
 
-- 実装は Vanilla JavaScript（ビルド工程なし）を基本とします。新しい依存やビルドツールを入れる場合は、プルリクエストで理由を説明してください。
+- 実装は TypeScript + React 18 + PatternFly 5（`@patternfly/react-core`）を基本とします。Cockpit 公式の拡張機能スタイルに準拠します。
 - 画面から受け取った値をコマンドに渡すときは、必ず引数配列で `cockpit.spawn()` に渡し、シェルを介さないでください。
 
 ## リリース

@@ -1,9 +1,5 @@
 name: リリース（Ubuntu 24.04 向け .deb）
 
-# v ではじまるタグを push すると、Ubuntu 24.04 環境で .deb をビルドして
-# GitHub Release に添付する。手動実行（workflow_dispatch）では
-# ビルドと成果物のアップロードのみ行い、Release は作成しない。
-
 on:
   push:
     tags:
@@ -20,6 +16,15 @@ jobs:
     steps:
       - name: ソースを取得
         uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 依存関係をインストール
+        run: npm ci
 
       - name: ビルド依存をインストール
         run: |
