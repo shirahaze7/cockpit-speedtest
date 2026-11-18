@@ -24,7 +24,12 @@ jobs:
           cache: "npm"
 
       - name: 依存関係をインストール
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: ビルド依存をインストール
         run: |
