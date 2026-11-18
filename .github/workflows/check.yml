@@ -65,7 +65,9 @@ jobs:
 
       - name: パッケージの中身を確認
         run: |
-          deb=$(ls ../cockpit-speedtest_*_all.deb)
+          mkdir -p deb-dist
+          mv ../cockpit-speedtest_*_all.deb deb-dist/
+          deb=$(ls deb-dist/cockpit-speedtest_*_all.deb)
           echo "ビルド成果物: $deb"
           dpkg-deb -I "$deb"
           # Cockpit 拡張のファイルが正しい場所に入っているか確認する
@@ -79,4 +81,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cockpit-speedtest-deb-check
-          path: ../cockpit-speedtest_*_all.deb
+          path: deb-dist/cockpit-speedtest_*_all.deb

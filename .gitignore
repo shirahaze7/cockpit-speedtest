@@ -14,6 +14,7 @@ yarn-error.log*
 
 # ビルド・成果物
 dist/
+deb-dist/
 release-files/
 *.tsbuildinfo
 *.log
