@@ -9,7 +9,7 @@ Rules-Requires-Root: no
 
 Package: cockpit-speedtest
 Architecture: all
-Depends: cockpit (>= 276), ${misc:Depends}
+Depends: cockpit (>= 276), curl, ca-certificates, ${misc:Depends}
 Recommends: speedtest
 Description: Cockpit 向けインターネット速度テスト拡張 (Ubuntu 24.04 向け)
  Cockpit の画面から、Cockpit を動かしているサーバー自身の
@@ -17,7 +17,5 @@ Description: Cockpit 向けインターネット速度テスト拡張 (Ubuntu 24
  拡張機能です。測定先の自動選択／手動選択、ダウンロード速度、
  アップロード速度、遅延の表示に対応します。
  .
- Ookla Speedtest CLI は Ubuntu の標準リポジトリには含まれないため、
- 別途導入が必要です（未導入の場合は画面に案内が表示されます）。
- そのため speedtest パッケージは Depends ではなく Recommends に
- しています。
+ パッケージインストール時に、Ookla 公式リポジトリ経由で
+ Ookla Speedtest CLI (speedtest) の自動導入を試みます。

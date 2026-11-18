@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # speedtest コマンドが既に利用可能か確認
+        if ! command -v speedtest >/dev/null 2>&1; then
+            echo "Installing Ookla Speedtest CLI..."
+            export DEBIAN_FRONTEND=noninteractive
+            
+            # curl, ca-certificates, gnupg のインストール確認
+            if ! command -v curl >/dev/null 2>&1; then
+                apt-get update -qq || true
+                apt-get install -y -qq --no-install-recommends curl ca-certificates || true
+            fi
+
+            # Ookla 公式リポジトリセットアップスクリプトの実行と speedtest インストール
+            if command -v curl >/dev/null 2>&1; then
+                curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash || true
+                apt-get install -y -qq speedtest || {
+                    echo "WARNING: Failed to automatically install Ookla Speedtest CLI." >&2
+                    echo "Please install it manually: https://www.speedtest.net/apps/cli" >&2
+                }
+            else
+                echo "WARNING: curl is missing. Could not install Ookla Speedtest CLI automatically." >&2
+            fi
+        fi
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0
