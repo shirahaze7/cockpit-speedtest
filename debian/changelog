@@ -1,0 +1,8 @@
+cockpit-speedtest (0.1.0-1) noble; urgency=medium
+
+  * 初期リリース
+  * Cockpit から Ookla Speedtest CLI を使って速度測定できる拡張を追加
+  * 測定先の自動選択／手動選択、進行状況と結果の表示、エラー案内に対応
+  * Ubuntu 24.04 (noble) 向け .deb パッケージに対応
+
+ -- shirahaze7 <shirahaze7@users.noreply.github.com>  Wed, 18 Nov 2026 05:44:40 +0900

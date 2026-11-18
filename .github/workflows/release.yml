@@ -1,0 +1,78 @@
+name: リリース（Ubuntu 24.04 向け .deb）
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-deb:
+    name: .deb をビルドして Release を作成
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ソースを取得
+        uses: actions/checkout@v4
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 依存関係をインストール
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: ビルド依存をインストール
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential debhelper dpkg-dev
+
+      - name: debian/rules に実行権限を付ける
+        run: chmod +x debian/rules
+
+      - name: チェックを実行
+        run: make check
+
+      - name: .deb パッケージをビルド
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: 成果物を集める
+        run: |
+          mkdir -p release-files
+          mv ../cockpit-speedtest_*.deb release-files/
+          git archive --format=tar.gz --prefix=cockpit-speedtest/ \
+            -o release-files/cockpit-speedtest-source.tar.gz HEAD
+          cd release-files
+          sha256sum * > SHA256SUMS
+          ls -l
+
+      - name: 成果物をアップロード（手動実行時の確認用）
+        uses: actions/upload-artifact@v4
+        with:
+          name: cockpit-speedtest-ubuntu2404
+          path: release-files/
+
+      - name: GitHub Release を作成
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release-files/* \
+            --title "cockpit-speedtest $GITHUB_REF_NAME（Ubuntu 24.04 向け）" \
+            --notes "Cockpit 向けインターネット速度テスト拡張のリリースです。
+
+          ## Ubuntu 24.04 へのインストール
+
+          1. 下の \`cockpit-speedtest_*_all.deb\` をダウンロードします
+          2. \`sudo apt install ./cockpit-speedtest_*_all.deb\` を実行します
+          3. Ookla Speedtest CLI（コマンド名 \`speedtest\`）が未導入の場合は、Ookla の公式配布ページ（https://www.speedtest.net/apps/cli）の手順で別途導入してください
+
+          変更内容の詳細はリポジトリの \`debian/changelog\` を参照してください。"

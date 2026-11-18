@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cockpit-speedtest
+Source: https://github.com/shirahaze7/cockpit-speedtest
+
+Files: *
+Copyright: 2026 shirahaze7 <shirahaze7@users.noreply.github.com>
+License: LGPL-2.1-or-later
+
+License: LGPL-2.1-or-later
+ On Debian systems, the full text of the GNU Lesser General Public
+ License version 2.1 can be found in `/usr/share/common-licenses/LGPL-2.1`.

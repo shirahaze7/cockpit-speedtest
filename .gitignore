@@ -1,0 +1,33 @@
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Node / 依存関係
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ビルド・成果物
+dist/
+deb-dist/
+release-files/
+*.tsbuildinfo
+*.log
+*.tmp
+
+# Debian / Ubuntu パッケージビルド一時ファイル
+debian/.debhelper/
+debian/cockpit-speedtest/
+debian/cockpit-speedtest.*
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.debhelper.log
+*.deb
+*.buildinfo
+*.changes
