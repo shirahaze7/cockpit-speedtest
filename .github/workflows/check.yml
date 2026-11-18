@@ -55,7 +55,7 @@ jobs:
       - name: ビルド依存をインストール
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends debhelper dpkg-dev
+          sudo apt-get install -y --no-install-recommends build-essential debhelper dpkg-dev
 
       - name: debian/rules に実行権限を付ける
         run: chmod +x debian/rules

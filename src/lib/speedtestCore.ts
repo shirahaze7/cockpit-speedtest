@@ -125,10 +125,13 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
 
     switch (type) {
         case "ping": {
-            const ping = (obj.ping as { progress?: number }) || {};
+            const ping = (obj.ping as { progress?: number; jitter?: number; latency?: number }) || {};
             return {
                 kind: "ping",
-                data: obj as unknown as SpeedtestJsonlEvent["data"] & { type: "ping" },
+                data: {
+                    type: "ping",
+                    ping
+                },
                 progress: typeof ping.progress === "number" ? ping.progress : null,
                 bandwidth: null
             };

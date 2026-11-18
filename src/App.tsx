@@ -277,7 +277,7 @@ export const App: React.FC = () => {
                     appendLog(rawLines.join("\n"));
                 }
             })
-            .always(() => {
+            .finally(() => {
                 currentProcRef.current = null;
                 setRunning(false);
             });
