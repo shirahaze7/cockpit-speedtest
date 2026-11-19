@@ -1,4 +1,4 @@
-cockpit-speedtest (0.1.0-1) noble; urgency=medium
+cockpit-speedtest (1.0.1) noble; urgency=medium
 
   * 初期リリース
   * Cockpit から Ookla Speedtest CLI を使って速度測定できる拡張を追加

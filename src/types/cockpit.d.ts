@@ -29,5 +29,5 @@ declare module "cockpit" {
 }
 
 interface Window {
-    readonly cockpit?: typeof import("cockpit");
+    readonly cockpit: typeof import("cockpit");
 }
