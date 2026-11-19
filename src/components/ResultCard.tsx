@@ -34,34 +34,34 @@ export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
             <CardBody>
                 <Flex spaceItems={{ default: "spaceItemsXl" }} style={{ marginBottom: "1.5rem" }}>
                     <FlexItem>
-                        <div style={{ fontSize: "0.875rem", color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                        <div style={{ fontSize: "0.875rem", color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                             ダウンロード
                         </div>
                         <div style={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1.2 }}>
                             {result.downloadMbps}{" "}
-                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                                 Mbps
                             </span>
                         </div>
                     </FlexItem>
                     <FlexItem>
-                        <div style={{ fontSize: "0.875rem", color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                        <div style={{ fontSize: "0.875rem", color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                             アップロード
                         </div>
                         <div style={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1.2 }}>
                             {result.uploadMbps}{" "}
-                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                                 Mbps
                             </span>
                         </div>
                     </FlexItem>
                     <FlexItem>
-                        <div style={{ fontSize: "0.875rem", color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                        <div style={{ fontSize: "0.875rem", color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                             遅延 (Ping)
                         </div>
                         <div style={{ fontSize: "2rem", fontWeight: 700, lineHeight: 1.2 }}>
                             {result.pingMs}{" "}
-                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                            <span style={{ fontSize: "1rem", fontWeight: 400, color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                                 ms
                             </span>
                         </div>

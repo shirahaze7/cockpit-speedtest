@@ -319,7 +319,7 @@ export const App: React.FC = () => {
                         <Title headingLevel="h1" size="2xl" style={{ marginBottom: "0.5rem" }}>
                             インターネット速度テスト
                         </Title>
-                        <p style={{ lineHeight: 1.6, color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                        <p style={{ lineHeight: 1.6, color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                             この測定は、<strong>Cockpitを動かしているサーバー自身</strong>から
                             インターネット上の測定先（Ookla Speedtest）までの通信速度を測るものです。
                             この画面を開いているPC自身の速度は測りません。
