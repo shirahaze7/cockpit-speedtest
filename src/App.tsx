@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AlertVariant, Page, PageSection, Title } from "@patternfly/react-core";
-import cockpit, { type CockpitError, type SpawnPromise } from "cockpit";
+import type { CockpitError, SpawnPromise } from "cockpit";
 
 import { AlertArea, type AlertState } from "./components/AlertArea";
 import { NotInstalledCard } from "./components/NotInstalledCard";
@@ -21,6 +21,7 @@ import {
     summarizeResult
 } from "./lib/speedtestCore";
 
+const cockpit = window.cockpit;
 const CONSENT_KEY = "cockpit-speedtest.consent-v1";
 
 export const App: React.FC = () => {
