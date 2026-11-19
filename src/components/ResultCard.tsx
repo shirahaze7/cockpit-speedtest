@@ -14,7 +14,7 @@ import {
 import type { FormattedResult } from "../types/speedtest";
 
 interface ResultCardProps {
-    result: FormattedResult | null;
+    readonly result: FormattedResult | null;
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
@@ -23,7 +23,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
     const formattedDate = (() => {
         if (!result.timestamp) return "–";
         const d = new Date(result.timestamp);
-        return isNaN(d.getTime()) ? result.timestamp : d.toLocaleString();
+        return Number.isNaN(d.getTime()) ? result.timestamp : d.toLocaleString();
     })();
 
     const isSafeUrl = Boolean(result.resultUrl && /^https?:\/\//i.test(result.resultUrl));

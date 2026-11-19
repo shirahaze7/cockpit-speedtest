@@ -16,19 +16,19 @@ import type { SpeedtestServer } from "../types/speedtest";
 import { serverLabel } from "../lib/speedtestCore";
 
 interface MeasurementCardProps {
-    cliVersion: string;
-    servers: SpeedtestServer[];
-    selectedServerId: string;
-    onSelectServerId: (id: string) => void;
-    serversStatus: string;
-    loadingServers: boolean;
-    onRefreshServers: () => void;
-    running: boolean;
-    onRunTest: () => void;
-    onCancelTest: () => void;
-    progressPhase: string;
-    progressPercent: number | null;
-    progressDetail: string;
+    readonly cliVersion: string;
+    readonly servers: readonly SpeedtestServer[];
+    readonly selectedServerId: string;
+    readonly onSelectServerId: (id: string) => void;
+    readonly serversStatus: string;
+    readonly loadingServers: boolean;
+    readonly onRefreshServers: () => void;
+    readonly running: boolean;
+    readonly onRunTest: () => void;
+    readonly onCancelTest: () => void;
+    readonly progressPhase: string;
+    readonly progressPercent: number | null;
+    readonly progressDetail: string;
 }
 
 export const MeasurementCard: React.FC<MeasurementCardProps> = ({

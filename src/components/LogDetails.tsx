@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardBody, CodeBlock, CodeBlockCode, ExpandableSection } from "@patternfly/react-core";
 
 interface LogDetailsProps {
-    logs: string;
+    readonly logs: string;
 }
 
 export const LogDetails: React.FC<LogDetailsProps> = ({ logs }) => {

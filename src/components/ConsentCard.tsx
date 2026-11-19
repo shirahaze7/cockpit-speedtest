@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button, Card, CardBody, CardFooter, CardTitle, Checkbox, List, ListItem } from "@patternfly/react-core";
 
 interface ConsentCardProps {
-    onConsent: () => void;
+    readonly onConsent: () => void;
 }
 
 export const ConsentCard: React.FC<ConsentCardProps> = ({ onConsent }) => {

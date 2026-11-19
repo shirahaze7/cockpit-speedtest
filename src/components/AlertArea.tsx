@@ -2,14 +2,14 @@ import React from "react";
 import { Alert, AlertVariant } from "@patternfly/react-core";
 
 export interface AlertState {
-    variant: AlertVariant;
-    title: string;
-    body?: string;
+    readonly variant: AlertVariant;
+    readonly title: string;
+    readonly body?: string;
 }
 
 interface AlertAreaProps {
-    alert: AlertState | null;
-    onClose?: () => void;
+    readonly alert: AlertState | null;
+    readonly onClose?: () => void;
 }
 
 export const AlertArea: React.FC<AlertAreaProps> = ({ alert, onClose }) => {

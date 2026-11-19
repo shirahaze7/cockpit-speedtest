@@ -14,6 +14,7 @@ import {
     classifyError,
     formatMbps,
     formatMs,
+    isCockpitError,
     isValidServerId,
     parseJsonlLine,
     parseServerList,
@@ -35,7 +36,7 @@ export const App: React.FC = () => {
         }
     });
 
-    const [servers, setServers] = useState<SpeedtestServer[]>([]);
+    const [servers, setServers] = useState<readonly SpeedtestServer[]>([]);
     const [selectedServerId, setSelectedServerId] = useState("");
     const [serversStatus, setServersStatus] = useState("");
     const [loadingServers, setLoadingServers] = useState(false);
@@ -53,10 +54,10 @@ export const App: React.FC = () => {
     const cancelledRef = useRef(false);
 
     const appendLog = useCallback((text: string) => {
-        setLogs((prev) => (prev ? `${prev}\n${text}` : text));
+        setLogs((prev) => (prev !== "" ? `${prev}\n${text}` : text));
     }, []);
 
-    const consentArgs = useCallback((): string[] => {
+    const consentArgs = useCallback((): readonly string[] => {
         return hasConsent ? ["--accept-license", "--accept-gdpr"] : [];
     }, [hasConsent]);
 
@@ -67,13 +68,13 @@ export const App: React.FC = () => {
         try {
             const output = await cockpit.spawn(["speedtest", "--version"], { err: "out" });
             setCliAvailable(true);
-            const firstLine = String(output).split(/\r?\n/)[0] || "";
+            const firstLine = String(output).split(/\r?\n/)[0] ?? "";
             setCliVersion(firstLine);
         } catch (err: unknown) {
             setCliAvailable(false);
-            const cErr = err as CockpitError;
+            const cErr: CockpitError | null = isCockpitError(err) ? err : null;
             if (classifyError(cErr?.problem, cErr?.message) !== "not-installed") {
-                appendLog(`speedtest --version: ${cErr?.message || String(err)}`);
+                appendLog(`speedtest --version: ${cErr?.message ?? String(err)}`);
             }
         } finally {
             setCheckingCli(false);
@@ -91,12 +92,12 @@ export const App: React.FC = () => {
             const list = parseServerList(output);
             setServers(list);
             setServersStatus(
-                list.length
+                list.length > 0
                     ? `${list.length} 件の測定先を取得しました`
                     : "測定先一覧が空でした。自動選択でも測定できます。"
             );
         } catch (err: unknown) {
-            const cErr = err as CockpitError;
+            const cErr: CockpitError | null = isCockpitError(err) ? err : null;
             setServersStatus("測定先一覧を取得できませんでした。自動選択でも測定できます。");
             const kind = classifyError(cErr?.problem, cErr?.message);
             if (kind === "license") {
@@ -112,7 +113,7 @@ export const App: React.FC = () => {
                     body: "同意が確認できませんでした。利用条件を確認し、同意してから再実行してください。"
                 });
             } else {
-                appendLog(`測定先一覧の取得エラー: ${cErr?.message || String(err)}`);
+                appendLog(`測定先一覧の取得エラー: ${cErr?.message ?? String(err)}`);
             }
         } finally {
             setLoadingServers(false);
@@ -247,8 +248,8 @@ export const App: React.FC = () => {
                 if (cancelledRef.current) return;
                 if (buffer.trim()) handleLine(buffer.trim());
                 if (!sawResult) {
-                    const cErr = err as CockpitError;
-                    const kind = classifyError(cErr?.problem, `${rawLines.join("\n")} ${cErr?.message || ""}`);
+                    const cErr: CockpitError | null = isCockpitError(err) ? err : null;
+                    const kind = classifyError(cErr?.problem, `${rawLines.join("\n")} ${cErr?.message ?? ""}`);
                     if (kind === "license") {
                         setHasConsent(false);
                         try {

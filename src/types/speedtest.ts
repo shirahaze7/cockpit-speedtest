@@ -1,119 +1,139 @@
+export const ERROR_CLASSIFICATIONS = [
+    "not-installed",
+    "license",
+    "network",
+    "unknown"
+] as const;
+
+export type ErrorClassification = (typeof ERROR_CLASSIFICATIONS)[number];
+
+export const PROGRESS_KINDS = ["ping", "download", "upload"] as const;
+export type ProgressKind = (typeof PROGRESS_KINDS)[number];
+
+export const ALL_JSONL_KINDS = [
+    "ping",
+    "download",
+    "upload",
+    "result",
+    "log",
+    "error",
+    "other"
+] as const;
+export type SpeedtestEventKind = (typeof ALL_JSONL_KINDS)[number];
+
 export interface SpeedtestServer {
-    id: string;
-    name: string;
-    sponsor: string;
-    location: string;
-    country: string;
-    host: string;
+    readonly id: string;
+    readonly name: string;
+    readonly sponsor: string;
+    readonly location: string;
+    readonly country: string;
+    readonly host: string;
 }
 
 export interface SpeedtestPingEvent {
-    type: "ping";
-    ping: {
-        jitter?: number;
-        latency?: number;
-        progress?: number;
+    readonly type: "ping";
+    readonly ping?: {
+        readonly jitter?: number;
+        readonly latency?: number;
+        readonly progress?: number;
     };
+}
+
+export interface SpeedtestBandwidthDetails {
+    readonly bandwidth?: number;
+    readonly bytes?: number;
+    readonly elapsed?: number;
+    readonly progress?: number;
 }
 
 export interface SpeedtestBandwidthEvent {
-    type: "download" | "upload";
-    download?: {
-        bandwidth?: number;
-        bytes?: number;
-        elapsed?: number;
-        progress?: number;
-    };
-    upload?: {
-        bandwidth?: number;
-        bytes?: number;
-        elapsed?: number;
-        progress?: number;
-    };
+    readonly type: "download" | "upload";
+    readonly download?: SpeedtestBandwidthDetails;
+    readonly upload?: SpeedtestBandwidthDetails;
+}
+
+export interface SpeedtestServerDetails {
+    readonly id?: number | string;
+    readonly name?: string;
+    readonly location?: string;
+    readonly country?: string;
+    readonly sponsor?: string;
+    readonly host?: string;
 }
 
 export interface SpeedtestResultEvent {
-    type: "result";
-    timestamp?: string;
-    ping?: {
-        latency?: number;
-        jitter?: number;
+    readonly type: "result";
+    readonly timestamp?: string;
+    readonly ping?: {
+        readonly latency?: number;
+        readonly jitter?: number;
     };
-    download?: {
-        bandwidth?: number;
-        bytes?: number;
-        elapsed?: number;
+    readonly download?: {
+        readonly bandwidth?: number;
+        readonly bytes?: number;
+        readonly elapsed?: number;
     };
-    upload?: {
-        bandwidth?: number;
-        bytes?: number;
-        elapsed?: number;
+    readonly upload?: {
+        readonly bandwidth?: number;
+        readonly bytes?: number;
+        readonly elapsed?: number;
     };
-    server?: {
-        id?: number | string;
-        name?: string;
-        location?: string;
-        country?: string;
-        sponsor?: string;
-        host?: string;
-    };
-    result?: {
-        id?: string;
-        url?: string;
+    readonly server?: SpeedtestServerDetails;
+    readonly result?: {
+        readonly id?: string;
+        readonly url?: string;
     };
 }
 
 export interface SpeedtestLogEvent {
-    type: "log";
-    message?: string;
-    level?: string;
+    readonly type: "log";
+    readonly message?: string;
+    readonly level?: string;
 }
 
 export interface SpeedtestErrorEvent {
-    type: "error";
-    message?: string;
+    readonly type: "error";
+    readonly message?: string;
 }
 
 export type SpeedtestJsonlEvent =
     | {
-          kind: "ping";
-          data: SpeedtestPingEvent;
-          progress: number | null;
-          bandwidth: null;
+          readonly kind: "ping";
+          readonly data: SpeedtestPingEvent;
+          readonly progress: number | null;
+          readonly bandwidth: null;
       }
     | {
-          kind: "download" | "upload";
-          data: SpeedtestBandwidthEvent;
-          progress: number | null;
-          bandwidth: number | null;
+          readonly kind: "download" | "upload";
+          readonly data: SpeedtestBandwidthEvent;
+          readonly progress: number | null;
+          readonly bandwidth: number | null;
       }
     | {
-          kind: "result";
-          data: SpeedtestResultEvent;
+          readonly kind: "result";
+          readonly data: SpeedtestResultEvent;
       }
     | {
-          kind: "log";
-          data: SpeedtestLogEvent;
+          readonly kind: "log";
+          readonly data: SpeedtestLogEvent;
       }
     | {
-          kind: "error";
-          data: SpeedtestErrorEvent;
+          readonly kind: "error";
+          readonly data: SpeedtestErrorEvent;
       }
     | {
-          kind: "other";
-          data: unknown;
+          readonly kind: "other";
+          readonly data: unknown;
       };
 
 export interface FormattedResult {
-    downloadMbps: string;
-    uploadMbps: string;
-    pingMs: string;
-    serverName: string;
-    serverSponsor: string;
-    serverLocation: string;
-    serverId: string;
-    timestamp: string;
-    resultUrl: string;
+    readonly downloadMbps: string;
+    readonly uploadMbps: string;
+    readonly pingMs: string;
+    readonly serverName: string;
+    readonly serverSponsor: string;
+    readonly serverLocation: string;
+    readonly serverId: string;
+    readonly timestamp: string;
+    readonly resultUrl: string;
 }
-
-export type ErrorClassification = "not-installed" | "license" | "network" | "unknown";
