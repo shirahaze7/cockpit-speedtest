@@ -48,6 +48,10 @@ export function isCockpitError(value: unknown): value is CockpitError {
     return isRecord(value);
 }
 
+export function isOoklaCli(output: unknown): boolean {
+    return typeof output === "string" && /\bOokla\b/i.test(output);
+}
+
 /**
  * `speedtest --servers` の出力をサーバー一覧に変換する。
  */

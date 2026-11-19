@@ -15,6 +15,7 @@ import {
     formatMbps,
     formatMs,
     isCockpitError,
+    isOoklaCli,
     isValidServerId,
     parseJsonlLine,
     parseServerList,
@@ -66,11 +67,18 @@ export const App: React.FC = () => {
     const checkCli = useCallback(async () => {
         setAlert(null);
         setCheckingCli(true);
+        setCliVersion("");
         try {
             const output = await cockpit.spawn(["speedtest", "--version"], { err: "out" });
-            setCliAvailable(true);
             const firstLine = String(output).split(/\r?\n/)[0] ?? "";
             setCliVersion(firstLine);
+            const isOokla = isOoklaCli(output);
+            setCliAvailable(isOokla);
+            if (!isOokla) {
+                appendLog(
+                    `speedtest --version: Ookla Speedtest CLI ではありません (${firstLine || "バージョンを判定できません"})`
+                );
+            }
         } catch (err: unknown) {
             setCliAvailable(false);
             const cErr: CockpitError | null = isCockpitError(err) ? err : null;
@@ -321,7 +329,11 @@ export const App: React.FC = () => {
                     <AlertArea alert={alert} />
 
                     {cliAvailable === false && (
-                        <NotInstalledCard onRecheck={checkCli} checking={checkingCli} />
+                        <NotInstalledCard
+                            detectedVersion={cliVersion}
+                            onRecheck={checkCli}
+                            checking={checkingCli}
+                        />
                     )}
 
                     {cliAvailable === true && !hasConsent && (

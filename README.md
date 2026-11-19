@@ -15,6 +15,7 @@ Cockpit 上から Linux サーバー自体のインターネット通信速度�
 
 - Cockpit (version 276 以降)
 - Ookla Speedtest CLI（コマンド名: `speedtest`）
+  - Python 版の `speedtest-cli` など別実装は非対応です。`speedtest --version` の出力に `Ookla` が含まれることを確認してください。
   - `.deb` パッケージからのインストール時は自動的にセットアップされます。
   - 手動インストールの場合は公式手順を参照してください: https://www.speedtest.net/apps/cli
 
