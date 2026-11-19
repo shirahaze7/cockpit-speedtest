@@ -15,7 +15,7 @@ body {
     background-color: var(--pf-v5-global--BackgroundColor--200, #f0f0f0);
 }
 
-.pf-v5-c-card {
-    --pf-v5-c-card--BackgroundColor: transparent;
-    --pf-v5-c-card--BoxShadow: none;
+.pf-v5-c-page .pf-v5-c-card {
+    background-color: transparent;
+    box-shadow: none;
 }
