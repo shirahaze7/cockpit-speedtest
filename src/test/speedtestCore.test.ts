@@ -5,6 +5,8 @@ import {
     classifyError,
     formatMbps,
     formatMs,
+    isCockpitError,
+    isRecord,
     isValidServerId,
     parseJsonlLine,
     parseServerList,
@@ -39,9 +41,9 @@ test("parseServerList parses Ookla JSON output", () => {
     });
     const servers = parseServerList(output);
     assert.equal(servers.length, 2);
-    assert.equal(servers[0].id, "12345");
-    assert.equal(servers[0].location, "Tokyo");
-    assert.match(serverLabel(servers[0]), /Example/);
+    assert.equal(servers[0]?.id, "12345");
+    assert.equal(servers[0]?.location, "Tokyo");
+    assert.match(serverLabel(servers[0]!), /Example/);
 });
 
 test("parseServerList parses human-readable output", () => {
@@ -76,6 +78,18 @@ test("serverLabel formats correctly without name or sponsor", () => {
         host: ""
     });
     assert.equal(label, "Tokyo, Japan (id: 999)");
+});
+
+test("isRecord and isCockpitError type guards correctly identify objects", () => {
+    assert.equal(isRecord({}), true);
+    assert.equal(isRecord(null), false);
+    assert.equal(isRecord("string"), false);
+    assert.equal(isRecord(123), false);
+
+    assert.equal(isCockpitError({ problem: "not-found" }), true);
+    assert.equal(isCockpitError(null), false);
+    assert.equal(isCockpitError(undefined), false);
+    assert.equal(isCockpitError("error"), false);
 });
 
 test("parseJsonlLine safely handles non-object and null JSON", () => {

@@ -1,9 +1,9 @@
 declare module "cockpit" {
     export interface SpawnOptions {
-        err?: "out" | "ignore" | "message";
-        superuser?: "try" | "require";
-        environ?: string[];
-        directory?: string;
+        readonly err?: "out" | "ignore" | "message";
+        readonly superuser?: "try" | "require";
+        readonly environ?: readonly string[];
+        readonly directory?: string;
     }
 
     export interface SpawnPromise<T = string> extends Promise<T> {
@@ -14,20 +14,20 @@ declare module "cockpit" {
     }
 
     export interface CockpitError {
-        message?: string;
-        problem?: "not-found" | "cancelled" | "access-denied" | "timeout" | "disconnected" | string;
-        exit_status?: number;
+        readonly message?: string;
+        readonly problem?: "not-found" | "cancelled" | "access-denied" | "timeout" | "disconnected" | string;
+        readonly exit_status?: number;
     }
 
-    export function spawn(args: string[], options?: SpawnOptions): SpawnPromise;
+    export function spawn(args: readonly string[], options?: SpawnOptions): SpawnPromise;
 
     const cockpit: {
-        spawn: typeof spawn;
+        readonly spawn: typeof spawn;
     };
 
     export default cockpit;
 }
 
 interface Window {
-    cockpit?: typeof import("cockpit");
+    readonly cockpit?: typeof import("cockpit");
 }

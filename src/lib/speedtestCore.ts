@@ -1,7 +1,12 @@
+import type { CockpitError } from "cockpit";
 import type {
     ErrorClassification,
     FormattedResult,
+    SpeedtestBandwidthEvent,
+    SpeedtestErrorEvent,
     SpeedtestJsonlEvent,
+    SpeedtestLogEvent,
+    SpeedtestPingEvent,
     SpeedtestResultEvent,
     SpeedtestServer
 } from "../types/speedtest";
@@ -35,10 +40,18 @@ export function formatMs(value: unknown): string {
     return value.toFixed(2);
 }
 
+export function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+export function isCockpitError(value: unknown): value is CockpitError {
+    return isRecord(value);
+}
+
 /**
  * `speedtest --servers` の出力をサーバー一覧に変換する。
  */
-export function parseServerList(output: unknown): SpeedtestServer[] {
+export function parseServerList(output: unknown): readonly SpeedtestServer[] {
     if (typeof output !== "string" || output.trim() === "") {
         return [];
     }
@@ -46,19 +59,19 @@ export function parseServerList(output: unknown): SpeedtestServer[] {
     const trimmed = output.trim();
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
         try {
-            const data = JSON.parse(trimmed);
-            if (data && typeof data === "object") {
-                const list = Array.isArray(data) ? data : (data as { servers?: unknown[] }).servers;
+            const data: unknown = JSON.parse(trimmed);
+            if (isRecord(data) || Array.isArray(data)) {
+                const list: unknown = Array.isArray(data) ? data : data["servers"];
                 if (Array.isArray(list)) {
                     return list
-                        .filter((s): s is Record<string, unknown> => Boolean(s && typeof s === "object" && "id" in s))
-                        .map((s) => ({
-                            id: String(s.id),
-                            name: String(s.name || ""),
-                            sponsor: String(s.sponsor || ""),
-                            location: String(s.location || ""),
-                            country: String(s.country || ""),
-                            host: String(s.host || "")
+                        .filter((s): s is Record<string, unknown> => isRecord(s) && "id" in s)
+                        .map((s): SpeedtestServer => ({
+                            id: String(s["id"] ?? ""),
+                            name: String(s["name"] ?? ""),
+                            sponsor: String(s["sponsor"] ?? ""),
+                            location: String(s["location"] ?? ""),
+                            country: String(s["country"] ?? ""),
+                            host: String(s["host"] ?? "")
                         }));
                 }
             }
@@ -70,7 +83,7 @@ export function parseServerList(output: unknown): SpeedtestServer[] {
     const servers: SpeedtestServer[] = [];
     for (const line of trimmed.split(/\r?\n/)) {
         const m = line.match(/^\s*(\d+)\)?\s+(.+?)\s*$/);
-        if (!m) continue;
+        if (!m || !m[1] || !m[2]) continue;
         if (/^(ID|Closest servers)/i.test(m[2])) continue;
 
         servers.push({
@@ -110,27 +123,32 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
     if (typeof line !== "string" || line.trim() === "") {
         return null;
     }
-    let obj: Record<string, unknown>;
+    let parsed: unknown;
     try {
-        const parsed = JSON.parse(line);
-        if (!parsed || typeof parsed !== "object") {
-            return { kind: "other", data: line };
-        }
-        obj = parsed as Record<string, unknown>;
+        parsed = JSON.parse(line);
     } catch {
         return { kind: "other", data: line };
     }
 
-    const type = typeof obj.type === "string" ? obj.type : "";
+    if (!isRecord(parsed)) {
+        return { kind: "other", data: line };
+    }
+
+    const type = typeof parsed["type"] === "string" ? parsed["type"] : "";
 
     switch (type) {
         case "ping": {
-            const ping = (obj.ping as { progress?: number; jitter?: number; latency?: number }) || {};
+            const pingRaw = isRecord(parsed["ping"]) ? parsed["ping"] : {};
+            const ping: SpeedtestPingEvent["ping"] = {
+                ...(typeof pingRaw["jitter"] === "number" ? { jitter: pingRaw["jitter"] } : {}),
+                ...(typeof pingRaw["latency"] === "number" ? { latency: pingRaw["latency"] } : {}),
+                ...(typeof pingRaw["progress"] === "number" ? { progress: pingRaw["progress"] } : {})
+            };
             return {
                 kind: "ping",
                 data: {
                     type: "ping",
-                    ping
+                    ...(Object.keys(ping).length > 0 ? { ping } : {})
                 },
                 progress: typeof ping.progress === "number" ? ping.progress : null,
                 bandwidth: null
@@ -138,22 +156,24 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
         }
         case "download":
         case "upload": {
-            const sub = (obj[type] as { progress?: number; bandwidth?: number }) || {};
+            const sub = isRecord(parsed[type]) ? parsed[type] : {};
+            const progress = typeof sub["progress"] === "number" ? sub["progress"] : null;
+            const bandwidth = typeof sub["bandwidth"] === "number" ? sub["bandwidth"] : null;
             return {
                 kind: type,
-                data: obj as unknown as SpeedtestJsonlEvent["data"] & { type: "download" | "upload" },
-                progress: typeof sub.progress === "number" ? sub.progress : null,
-                bandwidth: typeof sub.bandwidth === "number" ? sub.bandwidth : null
+                data: parsed as unknown as SpeedtestBandwidthEvent,
+                progress,
+                bandwidth
             };
         }
         case "result":
-            return { kind: "result", data: obj as unknown as SpeedtestResultEvent };
+            return { kind: "result", data: parsed as unknown as SpeedtestResultEvent };
         case "log":
-            return { kind: "log", data: obj as unknown as SpeedtestJsonlEvent["data"] & { type: "log" } };
+            return { kind: "log", data: parsed as unknown as SpeedtestLogEvent };
         case "error":
-            return { kind: "error", data: obj as unknown as SpeedtestJsonlEvent["data"] & { type: "error" } };
+            return { kind: "error", data: parsed as unknown as SpeedtestErrorEvent };
         default:
-            return { kind: "other", data: obj };
+            return { kind: "other", data: parsed };
     }
 }
 
@@ -164,7 +184,7 @@ export function summarizeResult(result: SpeedtestResultEvent | null | undefined)
     if (!result || result.type !== "result") {
         return null;
     }
-    const server = result.server || {};
+    const server = result.server ?? {};
     const downloadBw =
         result.download && typeof result.download.bandwidth === "number" ? result.download.bandwidth : undefined;
     const uploadBw =
@@ -176,12 +196,12 @@ export function summarizeResult(result: SpeedtestResultEvent | null | undefined)
         downloadMbps: formatMbps(downloadBw),
         uploadMbps: formatMbps(uploadBw),
         pingMs: formatMs(pingLatency),
-        serverName: server.name || "",
-        serverSponsor: server.sponsor || "",
+        serverName: server.name ?? "",
+        serverSponsor: server.sponsor ?? "",
         serverLocation: [server.location, server.country].filter(Boolean).join(", "),
         serverId: server.id !== undefined ? String(server.id) : "",
-        timestamp: result.timestamp || "",
-        resultUrl: (result.result && result.result.url) || ""
+        timestamp: result.timestamp ?? "",
+        resultUrl: result.result?.url ?? ""
     };
 }
 
@@ -189,7 +209,7 @@ export function summarizeResult(result: SpeedtestResultEvent | null | undefined)
  * CLI の失敗を、利用者向けの分類に振り分ける。
  */
 export function classifyError(problem: unknown, message: unknown): ErrorClassification {
-    const text = `${String(problem || "")} ${String(message || "")}`.toLowerCase();
+    const text = `${String(problem ?? "")} ${String(message ?? "")}`.toLowerCase();
     if (problem === "not-found" || /not found|no such file|command not found/.test(text)) {
         return "not-installed";
     }

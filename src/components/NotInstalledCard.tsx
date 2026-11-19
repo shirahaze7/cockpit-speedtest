@@ -2,8 +2,8 @@ import React from "react";
 import { Button, Card, CardBody, CardFooter, CardTitle } from "@patternfly/react-core";
 
 interface NotInstalledCardProps {
-    onRecheck: () => void;
-    checking: boolean;
+    readonly onRecheck: () => void;
+    readonly checking: boolean;
 }
 
 export const NotInstalledCard: React.FC<NotInstalledCardProps> = ({ onRecheck, checking }) => {
