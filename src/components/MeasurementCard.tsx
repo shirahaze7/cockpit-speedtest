@@ -51,7 +51,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({
             <CardTitle>測定</CardTitle>
             <CardBody>
                 {cliVersion && (
-                    <p style={{ color: "var(--pf-t--global--text--color--subtle, #6a6e73)", marginBottom: "1rem" }}>
+                    <p style={{ color: "var(--pf-v5-global--Color--200, #6a6e73)", marginBottom: "1rem" }}>
                         検出された CLI: {cliVersion}
                     </p>
                 )}
@@ -81,7 +81,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({
                             </Button>
                         </div>
                         {serversStatus && (
-                            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                                 {serversStatus}
                             </p>
                         )}
@@ -106,7 +106,7 @@ export const MeasurementCard: React.FC<MeasurementCardProps> = ({
                             measureLocation={progressPercent !== null ? ProgressMeasureLocation.outside : ProgressMeasureLocation.none}
                         />
                         {progressDetail && (
-                            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "var(--pf-t--global--text--color--subtle, #6a6e73)" }}>
+                            <p style={{ marginTop: "0.5rem", fontSize: "0.875rem", color: "var(--pf-v5-global--Color--200, #6a6e73)" }}>
                                 {progressDetail}
                             </p>
                         )}
