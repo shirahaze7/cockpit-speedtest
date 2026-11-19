@@ -2,6 +2,8 @@
 
 Cockpit 上から Linux サーバー自体のインターネット通信速度（下り・上り・遅延）を測定するための Cockpit 拡張機能です。
 バックエンドに Ookla Speedtest CLI を利用し、PatternFly 準拠の直感的な UI で測定や結果確認が行えます。
+<img width="1919" height="892" alt="image" src="https://github.com/user-attachments/assets/a79e41ec-8d5a-4973-a13b-d4a5f48a58a5" />
+
 
 ## 特徴
 
