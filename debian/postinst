@@ -3,8 +3,8 @@ set -e
 
 case "$1" in
     configure)
-        # speedtest コマンドが既に利用可能か確認
-        if ! command -v speedtest >/dev/null 2>&1; then
+        # 既存の speedtest コマンドが Ookla 版か確認
+        if ! speedtest --version 2>/dev/null | grep -qi Ookla; then
             echo "Installing Ookla Speedtest CLI..."
             export DEBIAN_FRONTEND=noninteractive
             

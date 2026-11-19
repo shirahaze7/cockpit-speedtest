@@ -6,6 +6,7 @@ import {
     formatMbps,
     formatMs,
     isCockpitError,
+    isOoklaCli,
     isRecord,
     isValidServerId,
     parseJsonlLine,
@@ -90,6 +91,13 @@ test("isRecord and isCockpitError type guards correctly identify objects", () =>
     assert.equal(isCockpitError(null), false);
     assert.equal(isCockpitError(undefined), false);
     assert.equal(isCockpitError("error"), false);
+});
+
+test("isOoklaCli distinguishes Ookla CLI from other speedtest implementations", () => {
+    assert.equal(isOoklaCli("Speedtest by Ookla 1.2.0"), true);
+    assert.equal(isOoklaCli("speedtest-cli 2.1.3"), false);
+    assert.equal(isOoklaCli("2.1.3"), false);
+    assert.equal(isOoklaCli(undefined), false);
 });
 
 test("parseJsonlLine safely handles non-object and null JSON", () => {
