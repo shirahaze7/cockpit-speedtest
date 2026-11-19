@@ -1,3 +1,10 @@
+cockpit-speedtest (1.0.3) noble; urgency=medium
+
+  * Remove nested APT operations from postinst to avoid package-manager lock waits.
+  * Document manual Ookla CLI installation for Ubuntu 24.04.
+
+ -- shirahaze7 <shirahaze7@users.noreply.github.com>  Fri, 20 Nov 2026 03:18:00 +0900
+
 cockpit-speedtest (1.0.2) noble; urgency=medium
 
   * 初期リリース

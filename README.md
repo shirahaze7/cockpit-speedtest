@@ -24,11 +24,20 @@ Cockpit 上から Linux サーバー自体のインターネット通信速度�
 ### .deb パッケージから（Ubuntu 24.04）
 
 GitHub Releases から最新の `.deb` パッケージをダウンロードしてインストールします。
-インストール時に Ookla Speedtest CLI も自動で導入されます。
+Ookla Speedtest CLI は別途インストールしてください。Ubuntu 24.04 (noble) は
+Ookla の Packagecloud APT リポジトリにReleaseファイルがないため、公式ページから
+Linux 用アーカイブをダウンロードし、展開した `speedtest` を PATH の通った場所に配置します。
+`speedtest --version` に `Ookla` が含まれることを確認してください。
 
 ```sh
 sudo apt install ./cockpit-speedtest_*_all.deb
 ```
+
+以前のバージョンでインストールに失敗した後、APT が `ookla_speedtest-cli` の
+Release ファイルに関する警告を出し続ける場合は、
+`/etc/apt/sources.list.d/ookla_speedtest-cli.list` の内容を確認してください。
+このファイルが失敗した自動セットアップで作成されたOoklaの設定であることを確認できた場合に限り、
+削除してから `sudo apt update` を実行してください。
 
 ### ソースコードから
 
