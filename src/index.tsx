@@ -5,29 +5,36 @@ import { App } from "./App";
 import "./index.css";
 
 const rootElement = document.documentElement;
+const managedThemeClasses = ["pf-v5-theme-dark", "pf-theme-dark"] as const;
 
-const hasDarkThemeHint = (element: Element | null): boolean => {
-    if (!element) return false;
+type ThemeHint = "dark" | "light" | null;
+
+const getThemeHint = (
+    element: Element | null,
+    ignoreManagedClasses = false
+): ThemeHint => {
+    if (!element) return null;
+
+    const theme = element.getAttribute("data-theme");
+    if (theme === "dark") return "dark";
+    if (theme === "light") return "light";
 
     for (const cls of Array.from(element.classList)) {
+        if (
+            ignoreManagedClasses &&
+            (cls === "pf-v5-theme-dark" || cls === "pf-theme-dark")
+        ) {
+            continue;
+        }
         if (/^pf-(?:v\d+-)?theme-dark$/.test(cls) || cls === "theme-dark") {
-            return true;
+            return "dark";
         }
-    }
-
-    return element.getAttribute("data-theme") === "dark";
-};
-
-const hasLightThemeHint = (element: Element | null): boolean => {
-    if (!element) return false;
-
-    for (const cls of Array.from(element.classList)) {
         if (/^pf-(?:v\d+-)?theme-light$/.test(cls) || cls === "theme-light") {
-            return true;
+            return "light";
         }
     }
 
-    return element.getAttribute("data-theme") === "light";
+    return null;
 };
 
 const getParentRoot = (): Element | null => {
@@ -45,23 +52,24 @@ const prefersDarkScheme = (): boolean =>
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-const syncDarkThemeClass = (): void => {
-    const darkHint =
-        hasDarkThemeHint(rootElement) ||
-        hasDarkThemeHint(document.body) ||
-        hasDarkThemeHint(getParentRoot());
-    const lightHint =
-        hasLightThemeHint(rootElement) ||
-        hasLightThemeHint(document.body) ||
-        hasLightThemeHint(getParentRoot());
-    const dark = darkHint || (!lightHint && prefersDarkScheme());
+const getDesiredDarkTheme = (): boolean => {
+    const parentHint = getThemeHint(getParentRoot());
+    if (parentHint) return parentHint === "dark";
 
-    if (dark) {
-        rootElement.classList.add("pf-v5-theme-dark");
-        rootElement.classList.add("pf-theme-dark");
-    } else {
-        rootElement.classList.remove("pf-v5-theme-dark");
-        rootElement.classList.remove("pf-theme-dark");
+    const rootHint = getThemeHint(rootElement, true);
+    if (rootHint) return rootHint === "dark";
+
+    const bodyHint = getThemeHint(document.body);
+    if (bodyHint) return bodyHint === "dark";
+
+    return prefersDarkScheme();
+};
+
+const syncDarkThemeClass = (): void => {
+    const dark = getDesiredDarkTheme();
+
+    for (const cls of managedThemeClasses) {
+        rootElement.classList.toggle(cls, dark);
     }
 };
 

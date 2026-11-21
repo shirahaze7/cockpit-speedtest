@@ -6,7 +6,7 @@
     "build": "node build.js",
     "watch": "node build.js --watch",
     "typecheck": "tsc --noEmit",
-    "test": "node --test dist/test/*.js",
+    "test": "node build.js && node --test dist/test/*.js",
     "check": "npm run typecheck && npm run test"
   },
   "dependencies": {
