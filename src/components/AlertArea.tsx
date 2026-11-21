@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert, AlertVariant } from "@patternfly/react-core";
+import { Alert, AlertActionCloseButton, AlertVariant } from "@patternfly/react-core";
 
 export interface AlertState {
     readonly variant: AlertVariant;
@@ -20,7 +20,7 @@ export const AlertArea: React.FC<AlertAreaProps> = ({ alert, onClose }) => {
             <Alert
                 variant={alert.variant}
                 title={alert.title}
-                actionClose={onClose ? undefined : undefined}
+                actionClose={onClose ? <AlertActionCloseButton onClose={onClose} /> : undefined}
                 isInline
             >
                 {alert.body && <p>{alert.body}</p>}

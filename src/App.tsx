@@ -54,6 +54,7 @@ export const App: React.FC = () => {
 
     const currentProcRef = useRef<SpawnPromise | null>(null);
     const cancelledRef = useRef(false);
+    const runSeqRef = useRef(0);
 
     const appendLog = useCallback((text: string) => {
         setLogs((prev) => (prev !== "" ? `${prev}\n${text}` : text));
@@ -166,6 +167,7 @@ export const App: React.FC = () => {
             return;
         }
 
+        const runId = ++runSeqRef.current;
         cancelledRef.current = false;
         setAlert(null);
         setResult(null);
@@ -183,9 +185,10 @@ export const App: React.FC = () => {
         let buffer = "";
         let sawResult = false;
         const rawLines: string[] = [];
+        const isActiveRun = () => runSeqRef.current === runId && !cancelledRef.current;
 
         const handleLine = (line: string) => {
-            if (!line) return;
+            if (!line || !isActiveRun()) return;
             rawLines.push(line);
             const event = parseJsonlLine(line);
             if (!event) return;
@@ -228,6 +231,7 @@ export const App: React.FC = () => {
         currentProcRef.current = proc;
 
         proc.stream((chunk: string) => {
+            if (runSeqRef.current !== runId || cancelledRef.current) return;
             buffer += chunk;
             let idx: number;
             while ((idx = buffer.indexOf("\n")) >= 0) {
@@ -237,7 +241,7 @@ export const App: React.FC = () => {
         });
 
         proc.then(() => {
-            if (cancelledRef.current) return;
+            if (runSeqRef.current !== runId || cancelledRef.current) return;
             if (buffer.trim()) handleLine(buffer.trim());
             if (!sawResult) {
                 setAlert({
@@ -254,7 +258,7 @@ export const App: React.FC = () => {
             }
         })
             .catch((err: unknown) => {
-                if (cancelledRef.current) return;
+                if (runSeqRef.current !== runId || cancelledRef.current) return;
                 if (buffer.trim()) handleLine(buffer.trim());
                 if (!sawResult) {
                     const cErr: CockpitError | null = isCockpitError(err) ? err : null;
@@ -288,6 +292,7 @@ export const App: React.FC = () => {
                 }
             })
             .finally(() => {
+                if (runSeqRef.current !== runId) return;
                 currentProcRef.current = null;
                 setRunning(false);
             });
