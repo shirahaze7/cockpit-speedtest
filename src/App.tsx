@@ -316,6 +316,10 @@ export const App: React.FC = () => {
         }
     }, []);
 
+    const handleCloseAlert = useCallback(() => {
+        setAlert(null);
+    }, []);
+
     return (
         <Page>
             <PageSection>
@@ -331,7 +335,7 @@ export const App: React.FC = () => {
                         </p>
                     </header>
 
-                    <AlertArea alert={alert} />
+                    <AlertArea alert={alert} onClose={handleCloseAlert} />
 
                     {cliAvailable === false && (
                         <NotInstalledCard
