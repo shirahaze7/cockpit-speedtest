@@ -1,12 +1,17 @@
 #!/usr/bin/make -f
+# Debian パッケージビルド用の debhelper ルール定義
 
+# すべての標準ターゲットを debhelper に委譲する
 %:
 	dh $@
 
+# ビルド工程では Makefile の build ターゲットを実行する
 override_dh_auto_build:
 	$(MAKE) build
 
+# インストール工程ではパッケージ用ディレクトリ配下へ配置する
 override_dh_auto_install:
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/cockpit-speedtest PREFIX=/usr
 
+# パッケージビルド時の自動テストはここでは実行しない（CI 等で別途実行）
 override_dh_auto_test:

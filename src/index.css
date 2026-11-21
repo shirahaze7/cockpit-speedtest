@@ -1,20 +1,24 @@
+/* ルート要素を画面全体の高さまで伸ばす */
 html,
 body,
 #app {
     min-height: 100%;
 }
 
+/* ベースの余白と配色（PatternFly の CSS 変数を優先利用） */
 body {
     margin: 0;
     background-color: var(--pf-v5-global--BackgroundColor--200, #f0f0f0);
     color: var(--pf-v5-global--Color--100, #151515);
 }
 
+/* Cockpit 埋め込み時もページ領域を十分な高さで表示する */
 .pf-v5-c-page {
     min-height: 100vh;
     background-color: var(--pf-v5-global--BackgroundColor--200, #f0f0f0);
 }
 
+/* ページ内カードの背景・影を抑え、親レイアウトになじませる */
 .pf-v5-c-page .pf-v5-c-card {
     background-color: transparent;
     box-shadow: none;

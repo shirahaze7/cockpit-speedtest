@@ -1,3 +1,4 @@
+// Ookla 利用条件・プライバシーポリシーへの同意を取得するカード
 import React, { useState } from "react";
 import { Button, Card, CardBody, CardFooter, CardTitle, Checkbox, List, ListItem } from "@patternfly/react-core";
 
@@ -6,6 +7,7 @@ interface ConsentCardProps {
 }
 
 export const ConsentCard: React.FC<ConsentCardProps> = ({ onConsent }) => {
+    // ユーザーが確認チェックを入れたかどうかのローカル状態
     const [checked, setChecked] = useState(false);
 
     return (

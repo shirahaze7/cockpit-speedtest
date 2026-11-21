@@ -1,3 +1,4 @@
+# push / PR 時に型チェック・テストと .deb ビルドの健全性を確認する CI ワークフロー
 name: チェック
 
 on:
@@ -9,6 +10,7 @@ on:
   pull_request:
 
 jobs:
+  # TypeScript 型チェックと単体テストを実行するジョブ
   check:
     name: テスト・型チェック（make check、Ubuntu 24.04）
     runs-on: ubuntu-24.04
@@ -23,6 +25,7 @@ jobs:
 
       - name: 依存関係をインストール
         run: |
+          # lockfile があれば npm ci、なければ npm install を使用する
           if [ -f package-lock.json ]; then
             npm ci
           else
@@ -32,6 +35,7 @@ jobs:
       - name: チェックを実行
         run: make check
 
+  # Ubuntu 24.04 上で .deb パッケージをビルドし、配置内容を検証するジョブ
   build-deb:
     name: .deb のビルド確認（Ubuntu 24.04）
     runs-on: ubuntu-24.04
@@ -46,6 +50,7 @@ jobs:
 
       - name: 依存関係をインストール
         run: |
+          # lockfile があれば npm ci、なければ npm install を使用する
           if [ -f package-lock.json ]; then
             npm ci
           else

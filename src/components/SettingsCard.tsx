@@ -1,3 +1,4 @@
+// 履歴保持件数などの設定を編集・保存するカード
 import React, { useState } from "react";
 import {
     ActionGroup,
@@ -32,6 +33,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
     onSaveConfig,
     onNotify
 }) => {
+    // 入力欄の現在値と保存完了状態（保存直後はボタンを無効化）
     const [inputValue, setInputValue] = useState(String(config.maxHistoryEntries));
     const [saved, setSaved] = useState(false);
 

@@ -1,16 +1,21 @@
+// 測定履歴と設定を localStorage で永続化するためのユーティリティ
 import type { FormattedResult } from "../types/speedtest";
 
+// localStorage に保存する際のキー名
 export const STORAGE_KEY_HISTORY = "cockpit-speedtest.history-v1";
 export const STORAGE_KEY_CONFIG = "cockpit-speedtest.config-v1";
 
+// 履歴保持件数のデフォルト値および許容範囲
 export const DEFAULT_MAX_HISTORY_ENTRIES = 20;
 export const MIN_MAX_HISTORY_ENTRIES = 1;
 export const MAX_MAX_HISTORY_ENTRIES = 1000;
 
+// アプリ設定（現在は履歴保持件数のみ）
 export interface AppConfig {
     maxHistoryEntries: number;
 }
 
+// 履歴一覧で一意に識別するための ID を付与した測定結果
 export interface HistoryEntry extends FormattedResult {
     id: string;
 }
@@ -109,10 +114,12 @@ export function addHistoryEntry(
     newResult: FormattedResult,
     maxEntries: number
 ): HistoryEntry[] {
+    // タイムスタンプと乱数を組み合わせて簡易な一意 ID を生成する
     const entry: HistoryEntry = {
         ...newResult,
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     };
+    // 新しい結果を先頭に追加し、保持上限を超えた古い履歴を切り捨てる
     const updated = [entry, ...history];
     const limit = clampHistoryLimit(maxEntries);
     return updated.slice(0, limit);
@@ -122,6 +129,7 @@ export function addHistoryEntry(
  * 履歴エントリのバリデーション
  */
 export function isValidHistoryEntry(entry: unknown): entry is HistoryEntry {
+    // 破損データや古い形式を除外するため、必須フィールドの型を確認する
     if (typeof entry !== "object" || entry === null) {
         return false;
     }
@@ -138,6 +146,7 @@ export function isValidHistoryEntry(entry: unknown): entry is HistoryEntry {
  * 日時文字列のフォーマット
  */
 export function formatTimestamp(isoString: string | undefined): string {
+    // ISO 文字列をローカル表示用に変換する（不正な値は元の文字列等でフォールバック）
     if (!isoString) return "–";
     const d = new Date(isoString);
     return Number.isNaN(d.getTime()) ? isoString : d.toLocaleString();

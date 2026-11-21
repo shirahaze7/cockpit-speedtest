@@ -1,3 +1,4 @@
+# リポジトリ全体のエディタ設定（文字コード・改行・インデント等）を統一する
 root = true
 
 [*]
@@ -8,8 +9,10 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 
+# JSON ファイルは一般的な 2 スペースインデントにする
 [*.json]
 indent_size = 2
 
+# Makefile はタブインデントが必須
 [Makefile]
 indent_style = tab

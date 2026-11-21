@@ -1,3 +1,4 @@
+// 保存済みの測定履歴を一覧・ページング・削除するカード
 import React, { useState } from "react";
 import {
     Button,
@@ -31,6 +32,7 @@ export const HistoryCard: React.FC<HistoryCardProps> = ({
     onClearHistory,
     onDeleteEntry
 }) => {
+    // ページングおよび全件削除モーダルの表示状態
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [isClearModalOpen, setIsClearModalOpen] = useState(false);

@@ -1,3 +1,4 @@
+// 測定の操作（サーバー選択・開始/中断）と進捗表示を行うカード
 import React from "react";
 import {
     ActionGroup,
@@ -15,6 +16,7 @@ import {
 import type { SpeedtestServer } from "../types/speedtest";
 import { serverLabel } from "../lib/speedtestCore";
 
+// 親コンポーネントから受け取る測定 UI 用のプロパティ
 interface MeasurementCardProps {
     readonly cliVersion: string;
     readonly servers: readonly SpeedtestServer[];

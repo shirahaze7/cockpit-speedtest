@@ -1,3 +1,4 @@
+// CLI 出力などの詳細ログを折りたたみ表示するコンポーネント
 import React, { useState } from "react";
 import { Card, CardBody, CodeBlock, CodeBlockCode, ExpandableSection } from "@patternfly/react-core";
 
@@ -6,8 +7,10 @@ interface LogDetailsProps {
 }
 
 export const LogDetails: React.FC<LogDetailsProps> = ({ logs }) => {
+    // ログ表示セクションの展開状態
     const [isExpanded, setIsExpanded] = useState(false);
 
+    // ログが空の場合は何も表示しない
     if (!logs) return null;
 
     return (

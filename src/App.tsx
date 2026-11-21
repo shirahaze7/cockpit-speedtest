@@ -42,14 +42,17 @@ import {
     type HistoryEntry
 } from "./lib/historyStorage";
 
+// Cockpit の API と利用条件同意の保存キー
 const cockpit = window.cockpit;
 const CONSENT_KEY = "cockpit-speedtest.consent-v1";
 
+// 速度測定拡張のメイン画面コンポーネント
 export const App: React.FC = () => {
-    // 状態
+    // CLI の利用可否・確認中状態・検出バージョン
     const [cliAvailable, setCliAvailable] = useState<boolean | null>(null);
     const [checkingCli, setCheckingCli] = useState(false);
     const [cliVersion, setCliVersion] = useState("");
+    // Ookla 利用条件への同意状態（localStorage から初期化）
     const [hasConsent, setHasConsent] = useState(() => {
         try {
             return window.localStorage.getItem(CONSENT_KEY) === "yes";
@@ -58,16 +61,19 @@ export const App: React.FC = () => {
         }
     });
 
+    // 測定サーバー一覧と選択状態
     const [servers, setServers] = useState<readonly SpeedtestServer[]>([]);
     const [selectedServerId, setSelectedServerId] = useState("");
     const [serversStatus, setServersStatus] = useState("");
     const [loadingServers, setLoadingServers] = useState(false);
 
+    // 測定実行中の進捗表示用状態
     const [running, setRunning] = useState(false);
     const [progressPhase, setProgressPhase] = useState("");
     const [progressPercent, setProgressPercent] = useState<number | null>(null);
     const [progressDetail, setProgressDetail] = useState("");
 
+    // 最新結果・通知・詳細ログ
     const [result, setResult] = useState<FormattedResult | null>(null);
     const [alert, setAlert] = useState<AlertState | null>(null);
     const [logs, setLogs] = useState("");
@@ -77,6 +83,7 @@ export const App: React.FC = () => {
     const [config, setConfig] = useState<AppConfig>(() => loadConfig());
     const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
 
+    // 実行中プロセスやキャンセル判定、最新設定への参照（非同期コールバック用）
     const currentProcRef = useRef<SpawnPromise | null>(null);
     const cancelledRef = useRef(false);
     const runSeqRef = useRef(0);
@@ -227,7 +234,7 @@ export const App: React.FC = () => {
         setAlert(null);
     }, []);
 
-    // 速度測定を開始
+    // 速度測定を開始（CLI を JSONL 出力モードで起動し、進捗と結果を逐次処理する）
     const handleRunTest = useCallback(() => {
         if (running || !cliAvailable) return;
         if (!hasConsent) return;
@@ -256,11 +263,14 @@ export const App: React.FC = () => {
             args.push(`--server-id=${selectedServerId}`);
         }
 
+        // ストリーム受信のバッファと結果受信フラグ
         let buffer = "";
         let sawResult = false;
         const rawLines: string[] = [];
+        // 古い実行のコールバックが最新状態を更新しないようにするガード
         const isActiveRun = () => runSeqRef.current === runId && !cancelledRef.current;
 
+        // 受信した JSONL 1行をイベント種別ごとに処理する
         const handleLine = (line: string) => {
             if (!line || !isActiveRun()) return;
             rawLines.push(line);
@@ -268,6 +278,7 @@ export const App: React.FC = () => {
             if (!event) return;
 
             if (event.kind === "ping") {
+                // 遅延計測フェーズの進捗を反映
                 const latency = event.data.ping?.latency;
                 setProgressPhase("遅延を測定中…");
                 setProgressPercent(
@@ -275,6 +286,7 @@ export const App: React.FC = () => {
                 );
                 setProgressDetail(latency !== undefined ? `遅延: ${formatMs(latency)} ms` : "");
             } else if (event.kind === "download") {
+                // ダウンロード計測フェーズの進捗と現在速度を反映
                 setProgressPhase("ダウンロード速度を測定中…");
                 setProgressPercent(
                     typeof event.progress === "number" ? Math.round(event.progress * 100) : null
@@ -283,6 +295,7 @@ export const App: React.FC = () => {
                     event.bandwidth !== null ? `現在: ${formatMbps(event.bandwidth)} Mbps` : ""
                 );
             } else if (event.kind === "upload") {
+                // アップロード計測フェーズの進捗と現在速度を反映
                 setProgressPhase("アップロード速度を測定中…");
                 setProgressPercent(
                     typeof event.progress === "number" ? Math.round(event.progress * 100) : null
@@ -291,6 +304,7 @@ export const App: React.FC = () => {
                     event.bandwidth !== null ? `現在: ${formatMbps(event.bandwidth)} Mbps` : ""
                 );
             } else if (event.kind === "result") {
+                // 最終結果を整形して表示・履歴へ保存
                 sawResult = true;
                 const summary = summarizeResult(event.data);
                 if (summary) {

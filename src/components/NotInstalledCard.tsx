@@ -1,3 +1,4 @@
+// Ookla Speedtest CLI 未導入・非互換時に案内を表示するカード
 import React from "react";
 import { Button, Card, CardBody, CardFooter, CardTitle } from "@patternfly/react-core";
 
@@ -12,6 +13,7 @@ export const NotInstalledCard: React.FC<NotInstalledCardProps> = ({
     onRecheck,
     checking
 }) => {
+    // バージョン文字列が取得できる場合は別実装 CLI が検出されたとみなす
     const hasIncompatibleCli = detectedVersion !== "";
 
     return (

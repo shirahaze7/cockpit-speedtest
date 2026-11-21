@@ -1,3 +1,4 @@
+// historyStorage.ts の永続化・バリデーション・整形処理に対する単体テスト
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -14,6 +15,7 @@ import {
 } from "../lib/historyStorage";
 import type { FormattedResult } from "../types/speedtest";
 
+// localStorage の代替として使う簡易モック
 class MockStorage {
     private store: Record<string, string> = {};
 
