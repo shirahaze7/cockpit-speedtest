@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AlertVariant, Page, PageSection, Title } from "@patternfly/react-core";
+import {
+    AlertVariant,
+    Page,
+    PageSection,
+    Tab,
+    Tabs,
+    TabTitleText,
+    Title
+} from "@patternfly/react-core";
 import type { CockpitError, SpawnPromise } from "cockpit";
 
 import { AlertArea, type AlertState } from "./components/AlertArea";
@@ -8,6 +16,8 @@ import { ConsentCard } from "./components/ConsentCard";
 import { MeasurementCard } from "./components/MeasurementCard";
 import { ResultCard } from "./components/ResultCard";
 import { LogDetails } from "./components/LogDetails";
+import { HistoryCard } from "./components/HistoryCard";
+import { SettingsCard } from "./components/SettingsCard";
 
 import type { FormattedResult, SpeedtestServer } from "./types/speedtest";
 import {
@@ -21,6 +31,16 @@ import {
     parseServerList,
     summarizeResult
 } from "./lib/speedtestCore";
+import {
+    addHistoryEntry,
+    clampHistoryLimit,
+    loadConfig,
+    loadHistory,
+    saveConfig,
+    saveHistory,
+    type AppConfig,
+    type HistoryEntry
+} from "./lib/historyStorage";
 
 const cockpit = window.cockpit;
 const CONSENT_KEY = "cockpit-speedtest.consent-v1";
@@ -52,9 +72,63 @@ export const App: React.FC = () => {
     const [alert, setAlert] = useState<AlertState | null>(null);
     const [logs, setLogs] = useState("");
 
+    // タブおよび履歴・設定の状態
+    const [activeTabKey, setActiveTabKey] = useState<string | number>("measure");
+    const [config, setConfig] = useState<AppConfig>(() => loadConfig());
+    const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+
     const currentProcRef = useRef<SpawnPromise | null>(null);
     const cancelledRef = useRef(false);
     const runSeqRef = useRef(0);
+    const configRef = useRef(config);
+    configRef.current = config;
+
+    // 履歴追加ハンドラ
+    const handleAddHistory = useCallback((newResult: FormattedResult) => {
+        setHistory((prev) => {
+            const updated = addHistoryEntry(prev, newResult, configRef.current.maxHistoryEntries);
+            saveHistory(updated);
+            return updated;
+        });
+    }, []);
+
+    // 設定保存ハンドラ
+    const handleSaveConfig = useCallback((newConfig: AppConfig) => {
+        const clampedLimit = clampHistoryLimit(newConfig.maxHistoryEntries);
+        const updatedConfig = { maxHistoryEntries: clampedLimit };
+        saveConfig(updatedConfig);
+        setConfig(updatedConfig);
+        setHistory((prev) => {
+            const trimmed = prev.slice(0, clampedLimit);
+            if (trimmed.length !== prev.length) {
+                saveHistory(trimmed);
+            }
+            return trimmed;
+        });
+    }, []);
+
+    // 履歴の個別削除ハンドラ
+    const handleDeleteHistoryEntry = useCallback((id: string) => {
+        setHistory((prev) => {
+            const updated = prev.filter((entry) => entry.id !== id);
+            saveHistory(updated);
+            return updated;
+        });
+    }, []);
+
+    // 履歴の全件削除ハンドラ
+    const handleClearHistory = useCallback(() => {
+        saveHistory([]);
+        setHistory([]);
+        setAlert({
+            variant: AlertVariant.info,
+            title: "測定履歴をすべて削除しました"
+        });
+    }, []);
+
+    const handleNotify = useCallback((variant: AlertVariant, title: string) => {
+        setAlert({ variant, title });
+    }, []);
 
     const appendLog = useCallback((text: string) => {
         setLogs((prev) => (prev !== "" ? `${prev}\n${text}` : text));
@@ -219,7 +293,10 @@ export const App: React.FC = () => {
             } else if (event.kind === "result") {
                 sawResult = true;
                 const summary = summarizeResult(event.data);
-                if (summary) setResult(summary);
+                if (summary) {
+                    setResult(summary);
+                    handleAddHistory(summary);
+                }
             } else if (event.kind === "log") {
                 appendLog(`[log] ${event.data.message || JSON.stringify(event.data)}`);
             } else if (event.kind === "error") {
@@ -296,7 +373,7 @@ export const App: React.FC = () => {
                 currentProcRef.current = null;
                 setRunning(false);
             });
-    }, [running, cliAvailable, hasConsent, selectedServerId, consentArgs, appendLog]);
+    }, [running, cliAvailable, hasConsent, selectedServerId, consentArgs, appendLog, handleAddHistory]);
 
     // 測定を中断
     const handleCancelTest = useCallback(() => {
@@ -350,27 +427,57 @@ export const App: React.FC = () => {
                     )}
 
                     {cliAvailable === true && hasConsent && (
-                        <>
-                            <MeasurementCard
-                                cliVersion={cliVersion}
-                                servers={servers}
-                                selectedServerId={selectedServerId}
-                                onSelectServerId={setSelectedServerId}
-                                serversStatus={serversStatus}
-                                loadingServers={loadingServers}
-                                onRefreshServers={loadServers}
-                                running={running}
-                                onRunTest={handleRunTest}
-                                onCancelTest={handleCancelTest}
-                                progressPhase={progressPhase}
-                                progressPercent={progressPercent}
-                                progressDetail={progressDetail}
-                            />
-                            <ResultCard result={result} />
-                        </>
+                        <Tabs
+                            activeKey={activeTabKey}
+                            onSelect={(_event, tabIndex) => setActiveTabKey(tabIndex)}
+                            style={{ marginBottom: "1.5rem" }}
+                        >
+                            <Tab eventKey="measure" title={<TabTitleText>測定</TabTitleText>}>
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <MeasurementCard
+                                        cliVersion={cliVersion}
+                                        servers={servers}
+                                        selectedServerId={selectedServerId}
+                                        onSelectServerId={setSelectedServerId}
+                                        serversStatus={serversStatus}
+                                        loadingServers={loadingServers}
+                                        onRefreshServers={loadServers}
+                                        running={running}
+                                        onRunTest={handleRunTest}
+                                        onCancelTest={handleCancelTest}
+                                        progressPhase={progressPhase}
+                                        progressPercent={progressPercent}
+                                        progressDetail={progressDetail}
+                                    />
+                                    <ResultCard result={result} />
+                                    <LogDetails logs={logs} />
+                                </div>
+                            </Tab>
+                            <Tab
+                                eventKey="history"
+                                title={<TabTitleText>{`測定履歴 (${history.length})`}</TabTitleText>}
+                            >
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <HistoryCard
+                                        history={history}
+                                        onClearHistory={handleClearHistory}
+                                        onDeleteEntry={handleDeleteHistoryEntry}
+                                    />
+                                </div>
+                            </Tab>
+                            <Tab eventKey="settings" title={<TabTitleText>設定</TabTitleText>}>
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <SettingsCard
+                                        config={config}
+                                        onSaveConfig={handleSaveConfig}
+                                        onNotify={handleNotify}
+                                    />
+                                </div>
+                            </Tab>
+                        </Tabs>
                     )}
 
-                    <LogDetails logs={logs} />
+                    {(!cliAvailable || !hasConsent) && <LogDetails logs={logs} />}
                 </div>
             </PageSection>
         </Page>

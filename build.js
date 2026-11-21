@@ -41,15 +41,23 @@ async function build() {
         }
     };
 
-    const testBuildOptions = {
-        entryPoints: [path.resolve(__dirname, "src/test/speedtestCore.test.ts")],
-        bundle: true,
-        platform: "node",
-        outfile: path.resolve(outdir, "test/speedtestCore.test.js"),
-        sourcemap: true,
-        target: ["node20"],
-        format: "cjs"
-    };
+    const testFiles = [
+        "src/test/speedtestCore.test.ts",
+        "src/test/historyStorage.test.ts"
+    ].filter((f) => fs.existsSync(path.resolve(__dirname, f)));
+
+    const testBuilds = testFiles.map((f) => {
+        const basename = path.basename(f, ".ts");
+        return esbuild.build({
+            entryPoints: [path.resolve(__dirname, f)],
+            bundle: true,
+            platform: "node",
+            outfile: path.resolve(outdir, `test/${basename}.js`),
+            sourcemap: true,
+            target: ["node20"],
+            format: "cjs"
+        });
+    });
 
     if (isWatch) {
         const clientCtx = await esbuild.context(clientBuildOptions);
@@ -57,9 +65,7 @@ async function build() {
         console.log("Watching for changes...");
     } else {
         await esbuild.build(clientBuildOptions);
-        if (fs.existsSync(path.resolve(__dirname, "src/test/speedtestCore.test.ts"))) {
-            await esbuild.build(testBuildOptions);
-        }
+        await Promise.all(testBuilds);
         console.log("Build completed successfully.");
     }
 }
