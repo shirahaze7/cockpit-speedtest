@@ -1,3 +1,4 @@
+// speedtest CLI の出力解析・整形・エラー分類など、UI から独立した純粋ロジックを提供する
 import type { CockpitError } from "cockpit";
 import type {
     ErrorClassification,
@@ -33,6 +34,7 @@ export function formatMbps(bytesPerSec: unknown): string {
     return mbps === null ? "–" : mbps.toFixed(2);
 }
 
+// ミリ秒値を表示用文字列に整形する（無効値はダッシュ表示）
 export function formatMs(value: unknown): string {
     if (typeof value !== "number" || !Number.isFinite(value)) {
         return "–";
@@ -40,14 +42,17 @@ export function formatMs(value: unknown): string {
     return value.toFixed(2);
 }
 
+// オブジェクト（null を除く）かどうかを判定する型ガード
 export function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
+// Cockpit エラーとして扱えるオブジェクトかを簡易判定する
 export function isCockpitError(value: unknown): value is CockpitError {
     return isRecord(value);
 }
 
+// Ookla 公式 CLI かどうかをバージョン出力から判定する
 export function isOoklaCli(output: unknown): boolean {
     return typeof output === "string" && /\bOokla\b/i.test(output);
 }
@@ -61,6 +66,7 @@ export function parseServerList(output: unknown): readonly SpeedtestServer[] {
     }
 
     const trimmed = output.trim();
+    // JSON 形式の出力（--format=json）の場合を優先的にパースする
     if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
         try {
             const data: unknown = JSON.parse(trimmed);
@@ -84,10 +90,12 @@ export function parseServerList(output: unknown): readonly SpeedtestServer[] {
         }
     }
 
+    // テキスト形式出力のフォールバック解析（行頭 ID を持つ行を抽出）
     const servers: SpeedtestServer[] = [];
     for (const line of trimmed.split(/\r?\n/)) {
         const m = line.match(/^\s*(\d+)\)?\s+(.+?)\s*$/);
         if (!m || !m[1] || !m[2]) continue;
+        // ヘッダ行など ID 以外の行は除外する
         if (/^(ID|Closest servers)/i.test(m[2])) continue;
 
         servers.push({
@@ -102,6 +110,7 @@ export function parseServerList(output: unknown): readonly SpeedtestServer[] {
     return servers;
 }
 
+// サーバー情報を UI の選択肢表示用ラベルに整形する
 export function serverLabel(server: SpeedtestServer): string {
     const parts: string[] = [];
     if (server.name) {
@@ -131,6 +140,7 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
     try {
         parsed = JSON.parse(line);
     } catch {
+        // JSON として解釈できない行は生データとして保持する
         return { kind: "other", data: line };
     }
 
@@ -142,6 +152,7 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
 
     switch (type) {
         case "ping": {
+            // ping イベント: 遅延・ジッタと進捗率を取り出す
             const pingRaw = isRecord(parsed["ping"]) ? parsed["ping"] : {};
             const ping: SpeedtestPingEvent["ping"] = {
                 ...(typeof pingRaw["jitter"] === "number" ? { jitter: pingRaw["jitter"] } : {}),
@@ -160,6 +171,7 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
         }
         case "download":
         case "upload": {
+            // 帯域測定イベント: 進捗率と現在の帯域幅（bytes/sec）を取り出す
             const sub = isRecord(parsed[type]) ? parsed[type] : {};
             const progress = typeof sub["progress"] === "number" ? sub["progress"] : null;
             const bandwidth = typeof sub["bandwidth"] === "number" ? sub["bandwidth"] : null;
@@ -171,12 +183,16 @@ export function parseJsonlLine(line: string): SpeedtestJsonlEvent | null {
             };
         }
         case "result":
+            // 測定完了イベント: 最終結果としてそのまま返す
             return { kind: "result", data: parsed as unknown as SpeedtestResultEvent };
         case "log":
+            // CLI のログ出力イベント
             return { kind: "log", data: parsed as unknown as SpeedtestLogEvent };
         case "error":
+            // CLI のエラー出力イベント
             return { kind: "error", data: parsed as unknown as SpeedtestErrorEvent };
         default:
+            // 未知の type は other として保持する
             return { kind: "other", data: parsed };
     }
 }

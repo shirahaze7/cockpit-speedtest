@@ -1,6 +1,8 @@
 #!/bin/sh
+# パッケージインストール後に実行される maintainer script（現時点では追加処理なし）
 set -e
 
+# debhelper が必要なフックを挿入するためのマーカー
 #DEBHELPER#
 
 exit 0

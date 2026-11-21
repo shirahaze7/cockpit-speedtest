@@ -1,6 +1,9 @@
-# テキストファイルは LF で統一する
+# Git の改行コード正規化設定（リポジトリ内では LF に統一）
 * text=auto eol=lf
 
+# Makefile はテキストとして LF を維持する
 Makefile text eol=lf
+
+# バイナリ画像ファイルはテキスト変換しない
 *.png binary
 *.jpg binary

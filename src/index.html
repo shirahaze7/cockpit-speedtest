@@ -1,15 +1,21 @@
 <!DOCTYPE html>
+<!-- Cockpit 拡張のエントリー HTML。Cockpit のフレーム内で読み込まれる -->
 <html lang="ja">
 <head>
     <meta charset="utf-8">
     <title>Speed Test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- ブラウザのライト/ダーク配色ヒントを有効化する -->
     <meta name="color-scheme" content="light dark">
+    <!-- Cockpit が提供する共通 API を読み込む（dist 配置時の相対パス） -->
     <script src="../base1/cockpit.js"></script>
+    <!-- バンドル済みスタイルシート -->
     <link rel="stylesheet" href="index.css">
 </head>
 <body>
+    <!-- React アプリのマウント先 -->
     <div id="app"></div>
+    <!-- バンドル済みクライアントスクリプト -->
     <script src="index.js"></script>
 </body>
 </html>

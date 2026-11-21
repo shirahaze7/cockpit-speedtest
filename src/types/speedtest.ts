@@ -1,3 +1,4 @@
+// CLI 実行失敗時の分類（UI 表示や分岐に利用）
 export const ERROR_CLASSIFICATIONS = [
     "not-installed",
     "license",
@@ -7,9 +8,11 @@ export const ERROR_CLASSIFICATIONS = [
 
 export type ErrorClassification = (typeof ERROR_CLASSIFICATIONS)[number];
 
+// 進捗表示対象となるイベント種別
 export const PROGRESS_KINDS = ["ping", "download", "upload"] as const;
 export type ProgressKind = (typeof PROGRESS_KINDS)[number];
 
+// speedtest CLI (JSONL) から受け取り得るイベント種別
 export const ALL_JSONL_KINDS = [
     "ping",
     "download",
@@ -21,6 +24,7 @@ export const ALL_JSONL_KINDS = [
 ] as const;
 export type SpeedtestEventKind = (typeof ALL_JSONL_KINDS)[number];
 
+// 測定サーバー情報（一覧表示・選択・結果表示で使用）
 export interface SpeedtestServer {
     readonly id: string;
     readonly name: string;
@@ -30,6 +34,7 @@ export interface SpeedtestServer {
     readonly host: string;
 }
 
+// ping 計測イベント（遅延・ジッタ・進捗）
 export interface SpeedtestPingEvent {
     readonly type: "ping";
     readonly ping?: {
@@ -39,6 +44,7 @@ export interface SpeedtestPingEvent {
     };
 }
 
+// ダウンロード/アップロード共通の帯域情報
 export interface SpeedtestBandwidthDetails {
     readonly bandwidth?: number;
     readonly bytes?: number;
@@ -46,12 +52,14 @@ export interface SpeedtestBandwidthDetails {
     readonly progress?: number;
 }
 
+// download/upload イベントのペイロード
 export interface SpeedtestBandwidthEvent {
     readonly type: "download" | "upload";
     readonly download?: SpeedtestBandwidthDetails;
     readonly upload?: SpeedtestBandwidthDetails;
 }
 
+// 最終結果イベント内のサーバー詳細情報
 export interface SpeedtestServerDetails {
     readonly id?: number | string;
     readonly name?: string;
@@ -61,6 +69,7 @@ export interface SpeedtestServerDetails {
     readonly host?: string;
 }
 
+// 測定完了時の result イベント（CLI の最終結果）
 export interface SpeedtestResultEvent {
     readonly type: "result";
     readonly timestamp?: string;
@@ -85,17 +94,20 @@ export interface SpeedtestResultEvent {
     };
 }
 
+// CLI が出力するログイベント
 export interface SpeedtestLogEvent {
     readonly type: "log";
     readonly message?: string;
     readonly level?: string;
 }
 
+// CLI が出力するエラーイベント
 export interface SpeedtestErrorEvent {
     readonly type: "error";
     readonly message?: string;
 }
 
+// JSONL 1行をアプリ内部で扱いやすい形に正規化したイベント表現
 export type SpeedtestJsonlEvent =
     | {
           readonly kind: "ping";
@@ -126,6 +138,7 @@ export type SpeedtestJsonlEvent =
           readonly data: unknown;
       };
 
+// UI 表示用に整形済みの測定結果
 export interface FormattedResult {
     readonly downloadMbps: string;
     readonly uploadMbps: string;

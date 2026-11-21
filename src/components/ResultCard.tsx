@@ -1,3 +1,4 @@
+// 最新の測定結果をカード形式で表示するコンポーネント
 import React from "react";
 import {
     Card,
@@ -18,6 +19,7 @@ interface ResultCardProps {
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
+    // 結果が未取得の場合は表示しない
     if (!result) return null;
 
     const formattedDate = (() => {

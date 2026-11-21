@@ -1,3 +1,4 @@
+# タグ push または手動実行で .deb をビルドし、GitHub Release を作成するワークフロー
 name: リリース（Ubuntu 24.04 向け .deb）
 
 on:
@@ -6,10 +7,12 @@ on:
       - "v*"
   workflow_dispatch:
 
+# Release 作成・アセット添付のため contents: write 権限が必要
 permissions:
   contents: write
 
 jobs:
+  # パッケージビルドと成果物公開を行うジョブ
   build-deb:
     name: .deb をビルドして Release を作成
     runs-on: ubuntu-24.04
@@ -24,6 +27,7 @@ jobs:
 
       - name: 依存関係をインストール
         run: |
+          # lockfile があれば npm ci、なければ npm install を使用する
           if [ -f package-lock.json ]; then
             npm ci
           else
@@ -56,6 +60,7 @@ jobs:
 
       - name: 成果物を集める
         run: |
+          # Release 添付用ディレクトリに .deb、ソースアーカイブ、チェックサムをまとめる
           mkdir -p release-files
           mv ../cockpit-speedtest_*.deb release-files/
           git archive --format=tar.gz --prefix=cockpit-speedtest/ \
@@ -75,6 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # タグ付き実行時のみ GitHub Release を作成して成果物を添付する
           gh release create "$GITHUB_REF_NAME" release-files/* \
             --title "cockpit-speedtest $GITHUB_REF_NAME（Ubuntu 24.04 向け）" \
             --notes "Cockpit 向けインターネット速度テスト拡張のリリースです。

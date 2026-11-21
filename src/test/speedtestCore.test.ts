@@ -1,3 +1,4 @@
+// speedtestCore.ts のユーティリティ関数に対する単体テスト
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

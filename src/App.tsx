@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AlertVariant, Page, PageSection, Title } from "@patternfly/react-core";
+import {
+    AlertVariant,
+    Page,
+    PageSection,
+    Tab,
+    Tabs,
+    TabTitleText,
+    Title
+} from "@patternfly/react-core";
 import type { CockpitError, SpawnPromise } from "cockpit";
 
 import { AlertArea, type AlertState } from "./components/AlertArea";
@@ -8,6 +16,8 @@ import { ConsentCard } from "./components/ConsentCard";
 import { MeasurementCard } from "./components/MeasurementCard";
 import { ResultCard } from "./components/ResultCard";
 import { LogDetails } from "./components/LogDetails";
+import { HistoryCard } from "./components/HistoryCard";
+import { SettingsCard } from "./components/SettingsCard";
 
 import type { FormattedResult, SpeedtestServer } from "./types/speedtest";
 import {
@@ -21,15 +31,28 @@ import {
     parseServerList,
     summarizeResult
 } from "./lib/speedtestCore";
+import {
+    addHistoryEntry,
+    clampHistoryLimit,
+    loadConfig,
+    loadHistory,
+    saveConfig,
+    saveHistory,
+    type AppConfig,
+    type HistoryEntry
+} from "./lib/historyStorage";
 
+// Cockpit の API と利用条件同意の保存キー
 const cockpit = window.cockpit;
 const CONSENT_KEY = "cockpit-speedtest.consent-v1";
 
+// 速度測定拡張のメイン画面コンポーネント
 export const App: React.FC = () => {
-    // 状態
+    // CLI の利用可否・確認中状態・検出バージョン
     const [cliAvailable, setCliAvailable] = useState<boolean | null>(null);
     const [checkingCli, setCheckingCli] = useState(false);
     const [cliVersion, setCliVersion] = useState("");
+    // Ookla 利用条件への同意状態（localStorage から初期化）
     const [hasConsent, setHasConsent] = useState(() => {
         try {
             return window.localStorage.getItem(CONSENT_KEY) === "yes";
@@ -38,23 +61,81 @@ export const App: React.FC = () => {
         }
     });
 
+    // 測定サーバー一覧と選択状態
     const [servers, setServers] = useState<readonly SpeedtestServer[]>([]);
     const [selectedServerId, setSelectedServerId] = useState("");
     const [serversStatus, setServersStatus] = useState("");
     const [loadingServers, setLoadingServers] = useState(false);
 
+    // 測定実行中の進捗表示用状態
     const [running, setRunning] = useState(false);
     const [progressPhase, setProgressPhase] = useState("");
     const [progressPercent, setProgressPercent] = useState<number | null>(null);
     const [progressDetail, setProgressDetail] = useState("");
 
+    // 最新結果・通知・詳細ログ
     const [result, setResult] = useState<FormattedResult | null>(null);
     const [alert, setAlert] = useState<AlertState | null>(null);
     const [logs, setLogs] = useState("");
 
+    // タブおよび履歴・設定の状態
+    const [activeTabKey, setActiveTabKey] = useState<string | number>("measure");
+    const [config, setConfig] = useState<AppConfig>(() => loadConfig());
+    const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+
+    // 実行中プロセスやキャンセル判定、最新設定への参照（非同期コールバック用）
     const currentProcRef = useRef<SpawnPromise | null>(null);
     const cancelledRef = useRef(false);
     const runSeqRef = useRef(0);
+    const configRef = useRef(config);
+    configRef.current = config;
+
+    // 履歴追加ハンドラ
+    const handleAddHistory = useCallback((newResult: FormattedResult) => {
+        setHistory((prev) => {
+            const updated = addHistoryEntry(prev, newResult, configRef.current.maxHistoryEntries);
+            saveHistory(updated);
+            return updated;
+        });
+    }, []);
+
+    // 設定保存ハンドラ
+    const handleSaveConfig = useCallback((newConfig: AppConfig) => {
+        const clampedLimit = clampHistoryLimit(newConfig.maxHistoryEntries);
+        const updatedConfig = { maxHistoryEntries: clampedLimit };
+        saveConfig(updatedConfig);
+        setConfig(updatedConfig);
+        setHistory((prev) => {
+            const trimmed = prev.slice(0, clampedLimit);
+            if (trimmed.length !== prev.length) {
+                saveHistory(trimmed);
+            }
+            return trimmed;
+        });
+    }, []);
+
+    // 履歴の個別削除ハンドラ
+    const handleDeleteHistoryEntry = useCallback((id: string) => {
+        setHistory((prev) => {
+            const updated = prev.filter((entry) => entry.id !== id);
+            saveHistory(updated);
+            return updated;
+        });
+    }, []);
+
+    // 履歴の全件削除ハンドラ
+    const handleClearHistory = useCallback(() => {
+        saveHistory([]);
+        setHistory([]);
+        setAlert({
+            variant: AlertVariant.info,
+            title: "測定履歴をすべて削除しました"
+        });
+    }, []);
+
+    const handleNotify = useCallback((variant: AlertVariant, title: string) => {
+        setAlert({ variant, title });
+    }, []);
 
     const appendLog = useCallback((text: string) => {
         setLogs((prev) => (prev !== "" ? `${prev}\n${text}` : text));
@@ -153,7 +234,7 @@ export const App: React.FC = () => {
         setAlert(null);
     }, []);
 
-    // 速度測定を開始
+    // 速度測定を開始（CLI を JSONL 出力モードで起動し、進捗と結果を逐次処理する）
     const handleRunTest = useCallback(() => {
         if (running || !cliAvailable) return;
         if (!hasConsent) return;
@@ -182,11 +263,14 @@ export const App: React.FC = () => {
             args.push(`--server-id=${selectedServerId}`);
         }
 
+        // ストリーム受信のバッファと結果受信フラグ
         let buffer = "";
         let sawResult = false;
         const rawLines: string[] = [];
+        // 古い実行のコールバックが最新状態を更新しないようにするガード
         const isActiveRun = () => runSeqRef.current === runId && !cancelledRef.current;
 
+        // 受信した JSONL 1行をイベント種別ごとに処理する
         const handleLine = (line: string) => {
             if (!line || !isActiveRun()) return;
             rawLines.push(line);
@@ -194,6 +278,7 @@ export const App: React.FC = () => {
             if (!event) return;
 
             if (event.kind === "ping") {
+                // 遅延計測フェーズの進捗を反映
                 const latency = event.data.ping?.latency;
                 setProgressPhase("遅延を測定中…");
                 setProgressPercent(
@@ -201,6 +286,7 @@ export const App: React.FC = () => {
                 );
                 setProgressDetail(latency !== undefined ? `遅延: ${formatMs(latency)} ms` : "");
             } else if (event.kind === "download") {
+                // ダウンロード計測フェーズの進捗と現在速度を反映
                 setProgressPhase("ダウンロード速度を測定中…");
                 setProgressPercent(
                     typeof event.progress === "number" ? Math.round(event.progress * 100) : null
@@ -209,6 +295,7 @@ export const App: React.FC = () => {
                     event.bandwidth !== null ? `現在: ${formatMbps(event.bandwidth)} Mbps` : ""
                 );
             } else if (event.kind === "upload") {
+                // アップロード計測フェーズの進捗と現在速度を反映
                 setProgressPhase("アップロード速度を測定中…");
                 setProgressPercent(
                     typeof event.progress === "number" ? Math.round(event.progress * 100) : null
@@ -217,9 +304,13 @@ export const App: React.FC = () => {
                     event.bandwidth !== null ? `現在: ${formatMbps(event.bandwidth)} Mbps` : ""
                 );
             } else if (event.kind === "result") {
+                // 最終結果を整形して表示・履歴へ保存
                 sawResult = true;
                 const summary = summarizeResult(event.data);
-                if (summary) setResult(summary);
+                if (summary) {
+                    setResult(summary);
+                    handleAddHistory(summary);
+                }
             } else if (event.kind === "log") {
                 appendLog(`[log] ${event.data.message || JSON.stringify(event.data)}`);
             } else if (event.kind === "error") {
@@ -296,7 +387,7 @@ export const App: React.FC = () => {
                 currentProcRef.current = null;
                 setRunning(false);
             });
-    }, [running, cliAvailable, hasConsent, selectedServerId, consentArgs, appendLog]);
+    }, [running, cliAvailable, hasConsent, selectedServerId, consentArgs, appendLog, handleAddHistory]);
 
     // 測定を中断
     const handleCancelTest = useCallback(() => {
@@ -350,27 +441,57 @@ export const App: React.FC = () => {
                     )}
 
                     {cliAvailable === true && hasConsent && (
-                        <>
-                            <MeasurementCard
-                                cliVersion={cliVersion}
-                                servers={servers}
-                                selectedServerId={selectedServerId}
-                                onSelectServerId={setSelectedServerId}
-                                serversStatus={serversStatus}
-                                loadingServers={loadingServers}
-                                onRefreshServers={loadServers}
-                                running={running}
-                                onRunTest={handleRunTest}
-                                onCancelTest={handleCancelTest}
-                                progressPhase={progressPhase}
-                                progressPercent={progressPercent}
-                                progressDetail={progressDetail}
-                            />
-                            <ResultCard result={result} />
-                        </>
+                        <Tabs
+                            activeKey={activeTabKey}
+                            onSelect={(_event, tabIndex) => setActiveTabKey(tabIndex)}
+                            style={{ marginBottom: "1.5rem" }}
+                        >
+                            <Tab eventKey="measure" title={<TabTitleText>測定</TabTitleText>}>
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <MeasurementCard
+                                        cliVersion={cliVersion}
+                                        servers={servers}
+                                        selectedServerId={selectedServerId}
+                                        onSelectServerId={setSelectedServerId}
+                                        serversStatus={serversStatus}
+                                        loadingServers={loadingServers}
+                                        onRefreshServers={loadServers}
+                                        running={running}
+                                        onRunTest={handleRunTest}
+                                        onCancelTest={handleCancelTest}
+                                        progressPhase={progressPhase}
+                                        progressPercent={progressPercent}
+                                        progressDetail={progressDetail}
+                                    />
+                                    <ResultCard result={result} />
+                                    <LogDetails logs={logs} />
+                                </div>
+                            </Tab>
+                            <Tab
+                                eventKey="history"
+                                title={<TabTitleText>{`測定履歴 (${history.length})`}</TabTitleText>}
+                            >
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <HistoryCard
+                                        history={history}
+                                        onClearHistory={handleClearHistory}
+                                        onDeleteEntry={handleDeleteHistoryEntry}
+                                    />
+                                </div>
+                            </Tab>
+                            <Tab eventKey="settings" title={<TabTitleText>設定</TabTitleText>}>
+                                <div style={{ paddingTop: "1.5rem" }}>
+                                    <SettingsCard
+                                        config={config}
+                                        onSaveConfig={handleSaveConfig}
+                                        onNotify={handleNotify}
+                                    />
+                                </div>
+                            </Tab>
+                        </Tabs>
                     )}
 
-                    <LogDetails logs={logs} />
+                    {(!cliAvailable || !hasConsent) && <LogDetails logs={logs} />}
                 </div>
             </PageSection>
         </Page>
